@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from Invoice_app.utils import UserManager
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True)
     email = models.EmailField(unique=True)
@@ -44,6 +45,7 @@ class Project(models.Model):
     def __str__(self):
         return self.project_name
     
+
 class Contract(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     contract_details = models.TextField(blank=True)
@@ -51,6 +53,7 @@ class Contract(models.Model):
     def __str__(self):
         return f"Contract {self.contract_id} for {self.project}"
     
+
 class Schedule(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     payment_due_date = models.DateField()
@@ -75,6 +78,7 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment {self.payment_id} for {self.contract}"
     
+
 class EmailReminder(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
     reminder_sent_date = models.DateField(null=True, blank=True)
