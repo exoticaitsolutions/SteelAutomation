@@ -35,325 +35,264 @@ class LoginView(generics.GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
-class SignUpView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
-                'message': 'User created successfully',
-                'user': {
-                    'username': user.username,
-                    'email': user.email,
-                    'role': user.role,
-                }
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class SignUpView(generics.CreateAPIView):
+    serializer_class = SignUpSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        return Response({
+            'message': 'User created successfully',
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'role': user.role,
+            }
+        }, status=status.HTTP_201_CREATED)
 
 
-class EntityListCreateAPIView(APIView):
+class EntityListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Entity.objects.all()
+    serializer_class = EntitySerializer
     authentication_classes = [TokenAuthentication]
 
-    def get(self, request, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(EntityListCreateAPIView, self).get_permissions()
 
-        entities = Entity.objects.all()
-        serializer = EntitySerializer(entities, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        serializer = EntitySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Entity created successfully',
-                'entity': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'message': 'Entity created successfully',
+            'entity': serializer.data
+        }, status=status.HTTP_201_CREATED)
 
 
-class EntityRetrieveUpdateDeleteAPIView(APIView):
+class EntityRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Entity.objects.all()
+    serializer_class = EntitySerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
-        return get_object_or_404(Entity, pk=pk)
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(EntityRetrieveUpdateDeleteAPIView, self).get_permissions()
 
-    def get(self, request, pk, format=None):
-        entity = self.get_object(pk)
-        serializer = EntitySerializer(entity)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Entity updated successfully' if not partial else 'Entity partially updated successfully',
+            'entity': serializer.data
+        }, status=status.HTTP_200_OK)
 
-    def put(self, request, pk, format=None):
-        self.check_permissions(request)
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        entity = self.get_object(pk)
-        serializer = EntitySerializer(entity, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Entity updated successfully',
-                'entity': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk, format=None):
-        self.check_permissions(request)
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        entity = self.get_object(pk)
-        serializer = EntitySerializer(entity, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Entity partially updated successfully',
-                'entity': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        self.check_permissions(request)
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        entity = self.get_object(pk)
-        entity.delete()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
         return Response({
             'message': 'Entity deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
 
 
-class ClientListCreateAPIView(APIView):
+class ClientListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(ClientListCreateAPIView, self).get_permissions()
 
-        clients = Client.objects.all()
-        serializer = ClientSerializer(clients, many=True)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'message': 'Client created successfully',
+            'client': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+
+class ClientRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]  
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(ClientRetrieveUpdateDeleteAPIView, self).get_permissions()
+
+    def retrieve(self, request, *args, **kwargs):
+        client = self.get_object()
+        serializer = self.get_serializer(client)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
+    def update(self, request, *args, **kwargs):
+        client = self.get_object()
+        serializer = self.get_serializer(client, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Client updated successfully',
+            'client': serializer.data
+        }, status=status.HTTP_200_OK)
 
-        serializer = ClientSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Client created successfully',
-                'client': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def partial_update(self, request, *args, **kwargs):
+        client = self.get_object()
+        serializer = self.get_serializer(client, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Client partially updated successfully',
+            'client': serializer.data
+        }, status=status.HTTP_200_OK)
 
-class ClientRetrieveUpdateDeleteAPIView(APIView):
-    authentication_classes = [TokenAuthentication]
-
-    def get_object(self, pk):
-        return get_object_or_404(Client, pk=pk)
-
-    def get(self, request, pk, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
-
-        client = self.get_object(pk)
-        serializer = ClientSerializer(client)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def put(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        client = self.get_object(pk)
-        serializer = ClientSerializer(client, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Client updated successfully',
-                'client': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        client = self.get_object(pk)
-        serializer = ClientSerializer(client, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Client partially updated successfully',
-                'client': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        client = self.get_object(pk)
+    def destroy(self, request, *args, **kwargs):
+        client = self.get_object()
         client.delete()
         return Response({
             'message': 'Client deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
 
-class ProjectListCreateAPIView(APIView):
+
+class ProjectListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
     authentication_classes = [TokenAuthentication]
 
-    def get(self, request, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(ProjectListCreateAPIView, self).get_permissions()
 
-        projects = Project.objects.all()
-        serializer = ProjectSerializer(projects, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def create(self, request, *args, **kwargs):
+        return super(ProjectListCreateAPIView, self).create(request, *args, **kwargs)
 
-    def post(self, request, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
+    def list(self, request, *args, **kwargs):
+        return super(ProjectListCreateAPIView, self).list(request, *args, **kwargs)
 
-        serializer = ProjectSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Project created successfully',
-                'project': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProjectRetrieveUpdateDeleteAPIView(APIView):
+class ProjectRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
-        return get_object_or_404(Project, pk=pk)
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(ProjectRetrieveUpdateDeleteAPIView, self).get_permissions()
 
-    def get(self, request, pk, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
-
-        project = self.get_object(pk)
-        serializer = ProjectSerializer(project)
+    def retrieve(self, request, *args, **kwargs):
+        project = self.get_object()
+        serializer = self.get_serializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
+    def update(self, request, *args, **kwargs):
+        project = self.get_object()
+        serializer = self.get_serializer(project, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Project updated successfully',
+            'project': serializer.data
+        }, status=status.HTTP_200_OK)
 
-        project = self.get_object(pk)
-        serializer = ProjectSerializer(project, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Project updated successfully',
-                'project': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def partial_update(self, request, *args, **kwargs):
+        project = self.get_object()
+        serializer = self.get_serializer(project, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Project partially updated successfully',
+            'project': serializer.data
+        }, status=status.HTTP_200_OK)
 
-    def patch(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        project = self.get_object(pk)
-        serializer = ProjectSerializer(project, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Project partially updated successfully',
-                'project': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        project = self.get_object(pk)
+    def destroy(self, request, *args, **kwargs):
+        project = self.get_object()
         project.delete()
         return Response({
             'message': 'Project deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
 
 
-class ContractListCreateAPIView(APIView):
+class ContractListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
     authentication_classes = [TokenAuthentication]
 
-    def get(self, request, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(ContractListCreateAPIView, self).get_permissions()
 
-        contracts = Contract.objects.all()
-        serializer = ContractSerializer(contracts, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def list(self, request, *args, **kwargs):
+        return super(ContractListCreateAPIView, self).list(request, *args, **kwargs)
 
-    def post(self, request, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
+    def create(self, request, *args, **kwargs):
+        return super(ContractListCreateAPIView, self).create(request, *args, **kwargs)
 
-        serializer = ContractSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Contract created successfully',
-                'contract': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class ContractRetrieveUpdateDeleteAPIView(APIView):
+class ContractRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
-        return get_object_or_404(Contract, pk=pk)
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(ContractRetrieveUpdateDeleteAPIView, self).get_permissions()
 
-    def get(self, request, pk, format=None):
-        self.permission_classes = [IsAuthenticated]
-        self.check_permissions(request)
-
-        contract = self.get_object(pk)
-        serializer = ContractSerializer(contract)
+    def retrieve(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
+    def update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
 
-        contract = self.get_object(pk)
-        serializer = ContractSerializer(contract, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Contract updated successfully',
-                'contract': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def partial_update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract partially updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
 
-    def patch(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        contract = self.get_object(pk)
-        serializer = ContractSerializer(contract, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'Contract partially updated successfully',
-                'contract': serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        self.permission_classes = [IsAdminUserPermission]
-        self.check_permissions(request)
-
-        contract = self.get_object(pk)
+    def destroy(self, request, *args, **kwargs):
+        contract = self.get_object()
         contract.delete()
         return Response({
             'message': 'Contract deleted successfully'
