@@ -2,13 +2,17 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from Invoice_app.utils import UserManager
 
+Role_CHOICES = [
+    ("ADMIN", "Admin"),
+    ("STAFF", "Staff"),
+]
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True)
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=50, blank=True)
-    is_staff = models.BooleanField(default=False)  # Required for admin access
-    is_superuser = models.BooleanField(default=False)  # Required for superuser access
+    role = models.CharField(max_length=50, choices=Role_CHOICES)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = UserManager()
 
