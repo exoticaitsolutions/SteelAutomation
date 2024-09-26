@@ -44,7 +44,9 @@ INSTALLED_APPS = [
    'drf_yasg'
     
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
