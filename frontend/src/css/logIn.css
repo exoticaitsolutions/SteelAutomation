@@ -5,8 +5,8 @@ body_Login {
   }
   
   .login-box {
-    width: 350px;
-    height: 400px;
+    max-width: 350px;
+    width: 100%;
     background: rgb(214, 214, 214);
     margin: 150px auto;
     border-radius: 10px;
@@ -19,6 +19,7 @@ body_Login {
     position: relative;
     top: -50px;
     left: 35%;
+    border-radius: 50%;
   }
   
   .login-box  h2 {
@@ -27,31 +28,32 @@ body_Login {
     color: #8f8888;
   }
   
- .login-form {
-    margin-left: 40px;
+ .login-form, form.signUp-form {
+    margin: auto;
+    width: 90%;
   }
   
- .login-form input {
+ .login-form input, form.signUp-form input {
     display: block;
-    width: 80%;
+    width: 100%;
     margin-bottom: 20px;
     padding: 10px;
     border: none;
     outline: none;
     font-family: sans-serif;
-    background: transparent;
+    background: #fff;
     font-size: 16px;
     border-radius: 25px;
     text-shadow: 1px 1px 0 #fff;
     box-shadow: inset 2px 2px 5px #babecc, inset -5px -5px 10px #fff;
   }
   
- .login-form button {
-    width: 87%;
+ .login-form button, form.signUp-form button {
+    width: 100%;
     border: none;
     height: 35px;
     border-radius: 25px;
-    background: rgb(7, 7, 7);
+    background: rgb(17, 17, 17);
     color: white;
     font-size: 20px;
     cursor: pointer;
@@ -74,6 +76,7 @@ body_Login {
     text-decoration: none;
     width: 49%;
   }
-  .login-btn{
-    padding: 27px 0;
+  .login-btn, .signup-btn{
+    /* padding: 27px 0; */
+    text-align: center;
   }

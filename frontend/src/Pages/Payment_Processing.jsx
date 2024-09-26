@@ -1,5 +1,6 @@
 import "../App.css"
 import React, { useState, useEffect } from "react";
+import Sidebar from "../components/Sidebar";
 
 function PaymentProcessing() {
 
@@ -38,12 +39,20 @@ function PaymentProcessing() {
 
 
     return (
-        <>
-            <section className="Payment_Processing">
-                <div className="container">
-                    {/* <div className="heading">
-                        <h2>Payment Processing</h2>
-                    </div> */}
+    
+            <div class="container">
+            <Sidebar />
+
+            <section class="main">
+                <div class="main-top">
+                    <div className="heading">
+                        <h2>Payment_Processing</h2>
+                    </div>
+
+                </div>
+                <div class="main-skills">
+                    <section className="add_client_page">
+                        <div className="container">
 
                     <form onSubmit={handleSubmit} className="form">
                         <div className="fields_main">
@@ -175,10 +184,14 @@ function PaymentProcessing() {
                         </div>
 
                     </form>
-                </div>
-            </section>
 
-        </>
+
+                    </div >
+                    </section >
+                </div>
+                    
+            </section>
+        </div>
     );
 };
 export default PaymentProcessing;

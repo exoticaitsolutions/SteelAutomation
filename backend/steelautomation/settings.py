@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-=ngj2!z250^%xv#79t4m7%6q+46#igwsh0(r_%7#@wxct20z++
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -41,12 +41,11 @@ INSTALLED_APPS = [
     "rest_framework",
    'rest_framework.authtoken',
    'rest_framework_swagger',
-   'drf_yasg'
+   'drf_yasg',
+   'corsheaders',
     
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost",
-]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
@@ -62,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = "steelautomation.urls"
@@ -85,6 +85,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "steelautomation.wsgi.application"
 AUTH_USER_MODEL = 'Invoice_app.User'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -95,6 +99,17 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'SteelAutomation',
+#         'USER': 'root',
+#         'PASSWORD': 'root',
+#         'HOST': 'localhost',  
+#         'PORT': '3306',  
+#     }
+# }
 
 
 # Password validation

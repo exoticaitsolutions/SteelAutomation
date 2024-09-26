@@ -34,10 +34,10 @@ class Client(models.Model):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
     client_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    address = models.TextField(blank=True)
+    address = models.TextField(blank=False)
 
     def __str__(self):
-        return self.client_name
+        return self.entity.entity_name
     
 
 class Project(models.Model):

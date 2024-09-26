@@ -36,15 +36,15 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
-    authentication_classes=(TokenAuthentication,),  # Ensure TokenAuthentication is added here
+    authentication_classes=(TokenAuthentication,),  
 )
 
 
 # URL patterns
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include('Invoice_app.urls')),  # Your API routes
-    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),  # Swagger UI
+    path("api/", include('Invoice_app.urls')),  
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),  
 ]
 
 # Serve media files in development

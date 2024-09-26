@@ -1,18 +1,18 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .serializers import ContractSerializer, LoginSerializer, ProjectSerializer, SignUpSerializer, UserSerializer
+from .serializers import ChangePasswordSerializer, ContractSerializer, ForgetPasswordSerializer, LoginSerializer, PaymentSerializer, ProjectSerializer, ScheduleSerializer, SignUpSerializer, UserSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Client, Contract, Entity, Project
+from .models import Client, Contract, Entity, Payment, Project, Schedule, User
 from .serializers import EntitySerializer, ClientSerializer
 from .permissions import IsAdminUserPermission
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated # type: ignore
 
 
 class LoginView(generics.GenericAPIView):
@@ -51,6 +51,33 @@ class SignUpView(generics.CreateAPIView):
                 'role': user.role,
             }
         }, status=status.HTTP_201_CREATED)
+    
+
+class ChangePasswordAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.get(email=serializer.validated_data['email'])
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+
+        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+
+
+class ForgetPasswordAPIView(APIView):
+    def post(self, request):
+        serializer = ForgetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.get(email=serializer.validated_data['email'])
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+
+        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
 
 
 class EntityListCreateAPIView(generics.ListCreateAPIView):
@@ -255,6 +282,7 @@ class ContractListCreateAPIView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         return super(ContractListCreateAPIView, self).create(request, *args, **kwargs)
 
+
 class ContractRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer
@@ -265,6 +293,140 @@ class ContractRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView)
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             self.permission_classes = [IsAdminUserPermission]
         return super(ContractRetrieveUpdateDeleteAPIView, self).get_permissions()
+
+    def retrieve(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract partially updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        contract = self.get_object()
+        contract.delete()
+        return Response({
+            'message': 'Contract deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+
+class ScheduleListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(ScheduleListCreateAPIView, self).get_permissions()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'message': 'Schedule created successfully',
+            'client': serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+
+class ScheduleRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(ScheduleRetrieveUpdateDeleteAPIView, self).get_permissions()
+
+    def retrieve(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Contract partially updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        contract = self.get_object()
+        contract.delete()
+        return Response({
+            'message': 'Contract deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+
+class PaymentListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(PaymentListCreateAPIView, self).get_permissions()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'message': 'Payment created successfully',
+            'client': serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+
+class PaymentRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(PaymentRetrieveUpdateDeleteAPIView, self).get_permissions()
 
     def retrieve(self, request, *args, **kwargs):
         contract = self.get_object()
