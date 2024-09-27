@@ -24,6 +24,7 @@ SECRET_KEY = "django-insecure-=ngj2!z250^%xv#79t4m7%6q+46#igwsh0(r_%7#@wxct20z++
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 ALLOWED_HOSTS = []
 
@@ -86,7 +87,7 @@ WSGI_APPLICATION = "steelautomation.wsgi.application"
 AUTH_USER_MODEL = 'Invoice_app.User'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost",
 ]
 
 
