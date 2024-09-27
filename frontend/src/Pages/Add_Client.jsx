@@ -3,18 +3,19 @@ import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import { toast, ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import validator from 'validator'; 
 function AddClient() {
   const [entities, setEntities] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState('');
   const [clientName, setClientName] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [errors, setErrors] = useState({}); 
   const token = localStorage.getItem("userToken");
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Check if we are editing an existing client
+  
   const clientToEdit = location.state ? location.state.client : null;
 
   useEffect(() => {
@@ -39,31 +40,55 @@ function AddClient() {
     fetchEntities();
 
     if (clientToEdit) {
-      console.log(clientToEdit);
-      
       setClientName(clientToEdit.client_name);
       setEmail(clientToEdit.email);
-      setSelectedEntity(clientToEdit.entity.id); 
+      setSelectedEntity(clientToEdit.entity.id);
       setAddress(clientToEdit.address);
     }
   }, [token, clientToEdit]);
 
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (validator.isEmpty(clientName.trim())) {
+      newErrors.clientName = 'Client name is required';
+    }
+
+    if (!validator.isEmail(email)) {
+      newErrors.email = 'Invalid email format';
+    }
+
+    if (!selectedEntity) {
+      newErrors.selectedEntity = 'Please select an entity';
+    }
+
+    if (validator.isEmpty(address.trim())) {
+      newErrors.address = 'Address is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
-    
+ 
+    if (!validateForm()) {
+      toast.error('Please fix the errors before submitting.');
+      return;
+    }
+
     const clientData = {
       client_name: clientName,
       email: email,
-      entity: parseInt(selectedEntity), 
+      entity: parseInt(selectedEntity),
       address: address,
     };
-    console.log(clientData);
 
     try {
       if (clientToEdit) {
-       
         const response = await axios.put(`http://127.0.0.1:8000/api/clients/${clientToEdit.id}/`, clientData, {
           headers: { 
             "Authorization": `Token ${token}`
@@ -71,7 +96,6 @@ function AddClient() {
         });
         toast.success("Client updated successfully!");
       } else {
-     
         const response = await axios.post('http://127.0.0.1:8000/api/clients/', clientData, {
           headers: { 
             "Authorization": `Token ${token}`
@@ -80,12 +104,10 @@ function AddClient() {
         toast.success("Client added successfully!");
       }
 
-
       setClientName('');
       setEmail('');
       setSelectedEntity('');
       setAddress('');
-
       navigate('/dashboard/clients');
     } catch (error) {
       console.error('Error saving client:', error);
@@ -117,6 +139,8 @@ function AddClient() {
                       onChange={(e) => setClientName(e.target.value)}
                       required
                     />
+                  
+                    {errors.clientName && <span className="error-text">{errors.clientName}</span>}
                   </div>
 
                   <div className="sec_field">
@@ -128,6 +152,8 @@ function AddClient() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
+       
+                    {errors.email && <span className="error-text">{errors.email}</span>}
                   </div>
 
                   <div className="sec_field">
@@ -137,10 +163,10 @@ function AddClient() {
                       onChange={(e) => setSelectedEntity(e.target.value)}
                       required
                     >
-                      <option value="entity" disabled>Select Entity</option>
+                      <option value="" disabled>Select Entity</option>
                       {entities.length > 0 ? (
                         entities.map((entity) => (
-                          <option key={entity.id} value={entity.id} data-id={entity.id}>
+                          <option key={entity.id} value={entity.id}>
                             {entity.entity_name}
                           </option>
                         ))
@@ -148,6 +174,8 @@ function AddClient() {
                         <option disabled>No entities available</option>
                       )}
                     </select>
+                
+                    {errors.selectedEntity && <span className="error-text">{errors.selectedEntity}</span>}
                   </div>
 
                   <div className="sec_field">
@@ -161,6 +189,8 @@ function AddClient() {
                       onChange={(e) => setAddress(e.target.value)}
                       required
                     />
+          
+                    {errors.address && <span className="error-text">{errors.address}</span>}
                   </div>
                 </div>
 
