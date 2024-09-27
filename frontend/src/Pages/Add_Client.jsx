@@ -3,20 +3,19 @@ import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import { toast, ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
-import validator from 'validator'; // Import validator library
-
+import validator from 'validator'; 
 function AddClient() {
   const [entities, setEntities] = useState([]);
   const [selectedEntity, setSelectedEntity] = useState('');
   const [clientName, setClientName] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
-  const [errors, setErrors] = useState({}); // State for holding error messages
+  const [errors, setErrors] = useState({}); 
   const token = localStorage.getItem("userToken");
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Check if we are editing an existing client
+  
   const clientToEdit = location.state ? location.state.client : null;
 
   useEffect(() => {
@@ -48,7 +47,7 @@ function AddClient() {
     }
   }, [token, clientToEdit]);
 
-  // Function to validate form fields
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -69,13 +68,13 @@ function AddClient() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate fields before submitting
+ 
     if (!validateForm()) {
       toast.error('Please fix the errors before submitting.');
       return;
@@ -140,7 +139,7 @@ function AddClient() {
                       onChange={(e) => setClientName(e.target.value)}
                       required
                     />
-                    {/* Display error message below the Client Name field */}
+                  
                     {errors.clientName && <span className="error-text">{errors.clientName}</span>}
                   </div>
 
@@ -153,7 +152,7 @@ function AddClient() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
-                    {/* Display error message below the Email field */}
+       
                     {errors.email && <span className="error-text">{errors.email}</span>}
                   </div>
 
@@ -175,7 +174,7 @@ function AddClient() {
                         <option disabled>No entities available</option>
                       )}
                     </select>
-                    {/* Display error message below the Entity field */}
+                
                     {errors.selectedEntity && <span className="error-text">{errors.selectedEntity}</span>}
                   </div>
 
@@ -190,7 +189,7 @@ function AddClient() {
                       onChange={(e) => setAddress(e.target.value)}
                       required
                     />
-                    {/* Display error message below the Address field */}
+          
                     {errors.address && <span className="error-text">{errors.address}</span>}
                   </div>
                 </div>
