@@ -13,7 +13,7 @@ return (
             <nav>
                 <ul>
                     <li><Link to="#" className="logo">
-                        <img src="six.png" alt="admin" />
+                        {/* <img src="six.png" alt="admin" /> */}
                         <span className="nav-item">Admin</span>
                     </Link></li>
 
@@ -21,13 +21,13 @@ return (
                         <i className="fas fa-home"></i>
                         <span className="nav-item">Home</span>
                     </Link></li>
-                    <li><Link to="/dashboard/entity">
+                    {/* <li><Link to="/dashboard/entity">
                     <i class="fas fa-address-card"></i>
                         <span className="nav-item">Entity</span>
-                    </Link></li>
+                    </Link></li> */}
                     <li><Link to="/dashboard/payment_processing">
                     <i class="fas fa-compass"></i>
-                        <span className="nav-item">Processing_Payment</span>
+                        <span className="nav-item">Processing Payment</span>
                     </Link></li>
                     <li><Link to="/dashboard/clients">
                         <i className="fas fa-user"></i>
@@ -35,11 +35,11 @@ return (
                     </Link></li>
                     <li><Link to="/dashboard/add_project">
                         <i className="fas fa-wallet"></i>
-                        <span className="nav-item">Add Project</span>
+                        <span className="nav-item">Projects</span>
                     </Link></li>
                     <li><Link to="/dashboard/add_contract">
                         <i className="fas fa-chart-bar"></i>
-                        <span className="nav-item">Add Contract</span>
+                        <span className="nav-item">Contracts</span>
                     </Link></li>
 
                     <li><Link to="">
