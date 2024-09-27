@@ -1,0 +1,64 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.env/
+*.env
+
+# Database files
+*.sqlite3
+*.db
+
+# Django migrations
+*/migrations/__init__.py
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.py~
+
+# Static files
+/static/
+media/
+
+# Logs
+*.log
+
+# Coverage directory used by tools like coverage.py
+.coverage
+htmlcov/
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+
+# Frontend specific
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Frontend build output
+frontend/build/
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tgz
+*.lock
+temp/
+tmp/
