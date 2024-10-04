@@ -1,15 +1,18 @@
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 function LogIn() {
-  
+
   const navigate = useNavigate();
   const [email, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [setErrorMessage] = useState("");
 
 
   const submitForm = async (e) => {
@@ -23,9 +26,10 @@ function LogIn() {
         password,
       });
       localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userRole', response.data.role);
       toast.success("Login successful!");
       navigate("/dashboard");
-      
+
     } catch (error) {
       if (error.response) {
         const errorData = error.response.data;
@@ -47,10 +51,28 @@ function LogIn() {
 
           <img src="login.png" alt="Login Illustration" />
           <h2>Login</h2>
-          {/* {errorMessage && <p className="error">{errorMessage}</p>} */}
+
           <form className="login-form" onSubmit={submitForm}>
             <input name="name" type="text" placeholder="Username" required onChange={e => setUsername(e.target.value)} autoComplete="email" />
-            <input name="password" type="password" placeholder="Password" required onChange={e => setPassword(e.target.value.trim())} autoComplete="password" />
+
+            <input
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              required
+              onChange={e => setPassword(e.target.value.trim())}
+              autoComplete="password"
+            />
+            <div className="eye-logo">
+              <button
+                type="button"
+                onClick={() => setShowPassword(prevState => !prevState)}
+                className="eye-button"
+
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
             <button type="submit">Login</button>
           </form>
 

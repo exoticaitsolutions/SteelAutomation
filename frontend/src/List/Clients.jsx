@@ -6,7 +6,9 @@ import { Link, useNavigate } from 'react-router-dom';
 function Clients() {
     const [clients, setClients] = useState([]);
     const token = localStorage.getItem('userToken');
-    const navigate = useNavigate(); 
+    const userRole = localStorage.getItem('userRole');
+
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchClients = async () => {
             try {
@@ -25,7 +27,7 @@ function Clients() {
         fetchClients();
     }, [token]);
 
- 
+
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this client?')) {
             try {
@@ -34,18 +36,18 @@ function Clients() {
                         "Authorization": `Token ${token}`
                     }
                 });
-        
+
                 setClients(clients.filter(client => client.id !== id));
-               
+
             } catch (error) {
                 console.error('Error deleting client:', error);
             }
         }
     };
 
-   
+
     const handleEdit = (client) => {
-        navigate(`/dashboard/add_client`, { state: { client } }); 
+        navigate(`/dashboard/add_client`, { state: { client } });
     };
 
     return (
@@ -53,9 +55,12 @@ function Clients() {
             <div className="container">
                 <Sidebar />
                 <div className="list-main">
-                    <div className='add_btn'>
-                        <Link to="/dashboard/add_client"><button>Add Client</button></Link>
-                    </div>
+                    {userRole === 'ADMIN' && (
+                        <div className='add_btn'>
+                            <Link to="/dashboard/add_client"><button>Add Client</button></Link>
+                        </div>
+                    )}
+
                     <table className='table'>
                         <thead>
                             <tr>
@@ -63,7 +68,9 @@ function Clients() {
                                 <th>Email</th>
                                 <th>Address</th>
                                 <th>Entity</th>
+                                {userRole === "ADMIN" && (
                                 <th>Action</th>
+                            )}
                             </tr>
                         </thead>
                         <tbody>
@@ -74,12 +81,15 @@ function Clients() {
                                         <td>{client.email}</td>
                                         <td>{client.address}</td>
                                         <td>{client.entity.entity_name}</td>
-                                        <td>
-                                            <div className='action_btn'>
-                                                <button onClick={() => handleEdit(client)}><i class="fas fa-edit"/></button>
-                                                <button onClick={() => handleDelete(client.id)}><i class="fas fa-calendar"/></button>
-                                            </div>
-                                        </td>
+                                        {userRole === 'ADMIN' && (
+                                            <td>
+                                                <div className='action_btn'>
+                                                    <button onClick={() => handleEdit(client)}><i className="fas fa-edit" /></button>
+                                                    <button onClick={() => handleDelete(client.id)}><i className="fas fa-calendar" /></button>
+                                                </div>
+                                            </td>
+                                        )}
+
                                     </tr>
                                 ))
                             ) : (

@@ -15,6 +15,8 @@ import SignUp from './Pages/SignUp';
 import Entity from './Pages/Entity';
 import PrivateRouter from './PrivateRoute';
 import Clients from './List/Clients';
+import Projects from './List/Projects';
+import Contracts from './List/Contracts';
 
 function App() {
   return (
@@ -33,7 +35,8 @@ function App() {
           <Route path="/dashboard/payment_processing" element={<PaymentProcessing />} />
 
           <Route path="/dashboard/clients" element={<Clients />} />
-
+          <Route path="/dashboard/projects" element={<Projects />} />
+          <Route path='/dashboard/contracts' element={<Contracts/>} />
 
           <Route path="/slip" element={<Slip />} />
           <Route path="/slip2" element={<Slip2 />} />

@@ -22,17 +22,20 @@ class LoginView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = serializer.validated_data['user']
         token = serializer.validated_data['token']
 
-        user_data = UserSerializer(user).data
+        # Extract only the 'role' field from the user data
+        role = user.role if hasattr(user, 'role') else None
 
         return Response({
             'message': 'Login successful',
             'token': token,
-            'status': status.HTTP_200_OK
+            'status': status.HTTP_200_OK,
+            'role': role
         }, status=status.HTTP_200_OK)
+
 
 
 class SignUpView(generics.CreateAPIView):
@@ -130,7 +133,7 @@ class EntityRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({
-            'message': 'Entity deleted successfully'
+            'message': 'Entity deleted successfully' 
         }, status=status.HTTP_204_NO_CONTENT)
 
 

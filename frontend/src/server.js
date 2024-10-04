@@ -10,7 +10,7 @@ app.use(cors({
 }));
 
 // Example route
-app.post('/api/login', (req, res) => {
+app.post('/api/login', (req, res) => {      
   res.json({ message: 'Login successful' });
 });
 

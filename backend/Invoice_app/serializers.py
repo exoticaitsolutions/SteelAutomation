@@ -24,6 +24,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({"password": "Passwords do not match."})
+        
 
         validate_password(attrs['password'])
 
@@ -110,6 +111,14 @@ class LoginSerializer(serializers.Serializer):
         token, created = Token.objects.get_or_create(user=user)
 
         attrs['user'] = user
+
+
+
+
+
+
+
+        
         attrs['token'] = token.key
         return attrs
 
@@ -164,6 +173,7 @@ class ContractSerializer(serializers.ModelSerializer):
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
+        
         fields = '__all__'
 
     def validate_payment_due_date(self, value):

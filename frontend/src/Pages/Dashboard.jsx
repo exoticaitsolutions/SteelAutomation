@@ -2,6 +2,7 @@ import Sidebar from "../components/Sidebar";
 
 
 
+
 function Dashboard() {
 
   return (
@@ -9,12 +10,15 @@ function Dashboard() {
     <div className="container">
       <Sidebar />
       <section className="main">
+
+
         <div className="dashboard-main-top">
+
           <h1>Wecome to the Steel Automation</h1>
         </div>
 
       </section>
-    </div>     
+    </div>
   )
 }
 export default Dashboard;

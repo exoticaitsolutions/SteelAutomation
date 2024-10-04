@@ -140,7 +140,7 @@ function AddClient() {
                       <option value="entity" disabled>Select Entity</option>
                       {entities.length > 0 ? (
                         entities.map((entity) => (
-                          <option key={entity.id} value={entity.id} data-id={entity.id}>
+                          <option key={entity.id} value={entity.id} >
                             {entity.entity_name}
                           </option>
                         ))

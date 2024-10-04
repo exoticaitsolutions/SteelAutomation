@@ -1,0 +1,119 @@
+/* src/components/TopNavbar.css */
+.top-navbar {
+    background-color: #333;
+    color: #fff;
+    padding: 15px 0;
+  }
+  
+  .xd-topbar {
+    padding: 10px 0;
+    margin: 0 20px;
+    background: #444;
+  }
+  
+  .navbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .icon-section {
+    flex: 1;
+  }
+  
+  .search-section {
+    flex: 3;
+  }
+  
+  .profile-section {
+    flex: 6;
+    text-align: right;
+  }
+  
+  .xp-searchbar .form-control {
+    width: 80%;
+    padding: 5px;
+    border: 1px solid #555;
+    border-radius: 3px 0 0 3px;
+  }
+  
+  .input-group-append .btn {
+    padding: 5px 15px;
+    border: 1px solid #555;
+    background: #555;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 0 3px 3px 0;
+  }
+  
+  .input-group-append .btn:hover {
+    background: #666;
+  }
+  
+  .xp-profilebar .nav {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .nav-item .nav-link {
+    color: #fff;
+    position: relative;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-item .nav-link:hover {
+    color: #ccc;
+  }
+  
+  .nav-item .notification {
+    background: red;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 6px;
+    position: absolute;
+    top: -5px;
+    right: 0;
+  }
+  
+  .nav-item .dropdown-menu {
+    display: none;
+    position: absolute;
+    background: #333;
+    list-style: none;
+    padding: 10px;
+    border-radius: 4px;
+    min-width: 180px;
+  }
+  
+  .nav-item:hover .dropdown-menu {
+    display: block;
+  }
+  
+  .user-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+  
+  .xp-breadcrumbbar {
+    padding: 10px 0;
+  }
+  
+  .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .breadcrumb-item a {
+    color: #fff;
+    text-decoration: none;
+  }
+  
+  .breadcrumb-item a:hover {
+    text-decoration: underline;
+  }
+  
