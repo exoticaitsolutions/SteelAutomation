@@ -12,7 +12,7 @@ function LogIn() {
   const [email, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
 
   const submitForm = async (e) => {
