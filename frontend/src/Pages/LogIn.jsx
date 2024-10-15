@@ -5,14 +5,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-
 function LogIn() {
 
   const navigate = useNavigate();
   const [email, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
 
   const submitForm = async (e) => {

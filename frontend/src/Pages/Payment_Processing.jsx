@@ -40,17 +40,17 @@ function PaymentProcessing() {
 
     return (
     
-            <div class="container">
+            <div className="container">
             <Sidebar />
 
-            <section class="main">
-                <div class="main-top">
+            <section className="main">
+                <div className="main-top">
                     <div className="heading">
                         <h2>Payment_Processing</h2>
                     </div>
 
                 </div>
-                <div class="main-skills">
+                <div className="main-skills">
                     <section className="add_client_page">
                         <div className="container">
 

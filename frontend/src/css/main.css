@@ -150,6 +150,20 @@ input[type="date"] {
   transition: all 0.3s ease-in-out;
 }
 
+.sec_field textarea {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.sec_field textarea:focus {
+  border-color: #007bff; /* Change color to fit your theme */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
 select {
   padding: 10px;
   font-size: 14px;

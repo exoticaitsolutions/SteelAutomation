@@ -1,78 +1,35 @@
-import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import axios from 'axios';
+import React from 'react';
+import Sidebar from "../components/Sidebar";
+import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
-
-const token = localStorage.getItem("userToken");
+import useFormHandler from '../hooks/useFormHandler';
 
 function AddContract() {
-    const [projects, setProjects] = useState([]);
-    const [selectedProject, setSelectedProject] = useState('');
-    const [contractDetails, setContractDetails] = useState('');
+    const token = localStorage.getItem("userToken");
     const location = useLocation();
     const navigate = useNavigate();
-    const contract = location.state?.contract || null;
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/projects/', {
-                    headers: {
-                        Authorization: `Token ${token}`
-                    }
-                });
-
-                if (Array.isArray(response.data)) {
-                    setProjects(response.data);
-                } else {
-                    console.error('Expected an array but got:', response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching projects:', error);
-            }
-        };
-
-        if (token) {
-            fetchProjects();
-        }
-    }, [token]);
-
-    useEffect(() => {
-        if (contract) {
-            setContractDetails(contract.contract_details || '');
-            setSelectedProject(contract.project?.id || '');
-        }
-    }, [contract]);
-
-    const handleSave = async (e) => {
-        e.preventDefault();
-
-        const payload = {
-            contract_details: contractDetails,
-            project: selectedProject,
-        };
-
-        try {
-            if (contract) {
-                // Update existing contract
-                await axios.put(`http://127.0.0.1:8000/api/contracts/${contract.id}/`, payload, {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                });
-            } else {
-                // Create new contract
-                await axios.post('http://127.0.0.1:8000/api/contracts/', payload, {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                });
-            }
-            navigate('/dashboard/contracts');
-        } catch (error) {
-            console.error('Error saving contract:', error);
-        }
+    const initialValues = {
+        contract_details: '',
+        project: '',
     };
+
+    const apiUrls = {
+        baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/contracts/`,
+        projectsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/projects/`,
+        redirectUrl: '/dashboard/contracts',
+    };
+
+    const { formValues, projects, isEditing, handleInputChange, handleSubmit } = useFormHandler(
+        initialValues,
+        apiUrls,
+        token,
+        navigate,
+        location
+    );
+
+    console.log("Selected Project ID:", formValues.project);
+    console.log("Current form values:", formValues);
 
     return (
         <div className="container">
@@ -80,29 +37,31 @@ function AddContract() {
             <section className="main">
                 <div className="main-top">
                     <div className="heading">
-                        <h2>{contract ? 'Edit Contract' : 'Add Contract'}</h2>
+                        <h2>{isEditing ? 'Edit Contract' : 'Add Contract'}</h2>
                     </div>
                 </div>
                 <div className="main-skills">
-                    <section className="add_client_page">
+                    <section className="add_contract_page">
                         <div className="container">
-                            <form className="form" onSubmit={handleSave}>
+                            <form className="form" onSubmit={handleSubmit}>
                                 <div className="fields_main_contract">
                                     <div className="sec_field">
-                                        <label>Contract Details : </label>
+                                        <label>Contract Details:</label>
                                         <input 
                                             type="text" 
+                                            name="contract_details" 
                                             placeholder="Contract Details" 
-                                            value={contractDetails} 
-                                            onChange={(e) => setContractDetails(e.target.value)} 
+                                            value={formValues.contract_details} 
+                                            onChange={handleInputChange} 
                                             required
                                         />
                                     </div>
                                     <div className="sec_field">
-                                        <label>Project :</label>
+                                        <label>Project:</label>
                                         <select
-                                            value={selectedProject}
-                                            onChange={(e) => setSelectedProject(e.target.value)}
+                                            name="project"
+                                            value={formValues.project} 
+                                            onChange={handleInputChange}
                                             required
                                         >
                                             <option value="" disabled>Select Project</option>
@@ -113,19 +72,22 @@ function AddContract() {
                                                     </option>
                                                 ))
                                             ) : (
-                                                <option disabled>No project available</option>
+                                                <option disabled>No projects available</option>
                                             )}
                                         </select>
                                     </div>
                                 </div>
                                 <div className="submit_btn">
-                                    <input className="form_submit" type="submit" value={contract ? "Update" : "Save"} />
+                                    <button className="form_submit" type="submit">
+                                        {isEditing ? 'Update' : 'Save'}
+                                    </button>
                                 </div>
                             </form>
                         </div>
                     </section>
                 </div>
             </section>
+            <ToastContainer />
         </div>
     );
 }

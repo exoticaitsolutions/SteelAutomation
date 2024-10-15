@@ -1,222 +1,119 @@
+import React from 'react';
 import Sidebar from "../components/Sidebar";
-import { useEffect, useState } from "react";
-import axios from 'axios';
+import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
-
-const token = localStorage.getItem("userToken");
+import useFormHandler from '../hooks/useFormHandler';
 
 function AddProject() {
-    const [clients, setClients] = useState([]);
-    const [entities, setEntities] = useState([]);
-    const [selectedClient, setSelectedClient] = useState('');
-    const [selectedEntity, setSelectedEntity] = useState('');
-    const [projectName, setProjectName] = useState('');
-    const [description, setDescription] = useState('');
-    const [projectId, setProjectId] = useState(null);
+  const token = localStorage.getItem("userToken");
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    const location = useLocation();
-    const navigate = useNavigate();
+  const initialValues = {
+    project_name: '',
+    description: '',
+    client: '',
+    entity: '',
+  };
 
-   
-    useEffect(() => {
-        if (location.state && location.state.project) {
-            const { project } = location.state;
-            setProjectId(project.id);
-            setProjectName(project.project_name);
-            setDescription(project.description);
-            setSelectedClient(project.client.id);
-            setSelectedEntity(project.entity.id);
-        }
-    }, [location.state]);
+  const apiUrls = {
+    baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/projects/`,
+    entityUrl: `${process.env.REACT_APP_API_BASE_URL}/api/entities/`,
+    clientsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/clients/`,
+    redirectUrl: '/dashboard/projects',
+  };
 
-    useEffect(() => {
-        const fetchClients = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/clients/', {
-                    headers: {
-                        Authorization: `Token ${token}`
-                    }
-                });
+  const { formValues, entities, clients, handleInputChange, handleSubmit, isEditing } = useFormHandler(initialValues, apiUrls, token, navigate, location);
 
-                if (Array.isArray(response.data)) {
-                    setClients(response.data);
-                } else {
-                    console.error('Expected an array but got:', response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching clients:', error);
-            }
-        };
-
-        if (token) {
-            fetchClients();
-        }
-    }, [token]);
-
-    useEffect(() => {
-        const fetchEntities = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/entities/', {
-                    headers: {
-                        Authorization: `Token ${token}`
-                    }
-                });
-
-                if (Array.isArray(response.data)) {
-                    setEntities(response.data);
-                } else {
-                    console.error('Expected an array but got:', response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching entities:', error);
-            }
-        };
-
-        if (token) {
-            fetchEntities();
-        }
-    }, [token]);
-
-
-    const submitProject = async (event) => {
-        event.preventDefault();
-
-        try {
-            const projectData = {
-                project_name: projectName,
-                description,
-                client: selectedClient,
-                entity: selectedEntity
-            };
-
-            let response;
-
-            if (projectId) {
-          
-                response = await axios.put(`http://127.0.0.1:8000/api/projects/${projectId}/`, projectData, {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } else {
-                
-                response = await axios.post('http://127.0.0.1:8000/api/projects/', projectData, {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
-
-            if (response.status === 201 || response.status === 200) {
-                alert("Your Project Submitted Successfully");
-                
-              
-                setProjectName('');
-                setDescription('');
-                setSelectedClient('');
-                setSelectedEntity('');
-                setProjectId(null);
-                navigate('/dashboard/projects');
-            } else {
-                console.error('Unexpected response status:', response.status);
-                alert("Failed to submit project. Please try again.");
-            }
-        } catch (error) {
-            console.error('Error submitting project:', error);
-            alert("Failed to submit project. Please check your inputs and try again.");
-        }
-    };
-
-    return (
-        <div className="container">
-            <Sidebar />
-
-            <section className="main">
-                <div className="main-top">
-                    <div className="heading">
-                        <h2>{projectId ? 'Edit Project' : 'Add Project'}</h2>
-                    </div>
-                </div>
-                <div className="main-skills">
-                    <section className="add_client_page">
-                        <div className="container">
-                            <form onSubmit={submitProject} className="form">
-                                <div className="fields_main">
-                                    <div className="sec_field">
-                                        <label>Project Name :</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Project Name"
-                                            value={projectName}
-                                            onChange={(e) => setProjectName(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="sec_field">
-                                        <label>Description :</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Description"
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="sec_field">
-                                        <label>Clients :</label>
-                                        <select
-                                            value={selectedClient}
-                                            onChange={(e) => setSelectedClient(e.target.value)}
-                                            required
-                                        >
-                                            <option value="" disabled>Select Client</option>
-                                            {clients.length > 0 ? (
-                                                clients.map((client) => (
-                                                    <option key={client.id} value={client.id}>
-                                                        {client.client_name}
-                                                    </option>
-                                                ))
-                                            ) : (
-                                                <option disabled>No client available</option>
-                                            )}
-                                        </select>
-                                    </div>
-
-                                    <div className="sec_field">
-                                        <label>Entity :</label>
-                                        <select
-                                            value={selectedEntity}
-                                            onChange={(e) => setSelectedEntity(e.target.value)}
-                                            required
-                                        >
-                                            <option value="" disabled>Select Entity</option>
-                                            {entities.length > 0 ? (
-                                                entities.map((entity) => (
-                                                    <option key={entity.id} value={entity.id}>
-                                                        {entity.entity_name}
-                                                    </option>
-                                                ))
-                                            ) : (
-                                                <option disabled>No entities available</option>
-                                            )}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="submit_btn">
-                                    <input className="form_submit" type="submit" value={projectId ? 'Update' : 'Save'} />
-                                </div>
-                            </form>
-                        </div>
-                    </section>
-                </div>
-            </section>
+  return (
+    <div className="container">
+      <Sidebar />
+      <section className="main">
+        <div className="main-top">
+          <div className="heading">
+            <h2>{isEditing ? 'Edit Project' : 'Add Project'}</h2>
+          </div>
         </div>
-    );
+
+        <div className="main-skills">
+          <section className="add_project_page">
+            <div className="container">
+              <form onSubmit={handleSubmit} className="form">
+                <div className="fields_main">
+                  <div className="sec_field">
+                    <label>Project Name :</label>
+                    <input
+                      type="text"
+                      name="project_name"
+                      placeholder="Project Name"
+                      value={formValues.project_name}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="sec_field">
+                    <label>Description :</label>
+                    <input
+                      name="description"
+                      type="text"
+                      placeholder="Description"
+                      value={formValues.description}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="sec_field">
+                    <label>Client :</label>
+                    <select
+                      name="client"
+                      value={formValues.client}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Client</option>
+                      {clients.length > 0 ? (
+                        clients.map((client) => (
+                          <option key={client.id} value={client.id}>
+                            {client.client_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No clients available</option>
+                      )}
+                    </select>
+                  </div>
+                  <div className="sec_field">
+                    <label>Entity :</label>
+                    <select
+                      name="entity"
+                      value={formValues.entity} 
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Entity</option>
+                      {entities.length > 0 ? (
+                        entities.map((entity) => (
+                          <option key={entity.id} value={entity.id}>
+                            {entity.entity_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No entities available</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+                <div className="submit_btn">
+                  <button className="form_submit" type="submit">{isEditing ? 'Update' : 'Save'}</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+        <ToastContainer />
+      </section>
+    </div>
+  );
 }
 
 export default AddProject;

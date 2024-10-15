@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 function Contracts() {
     const [Contracts, setContracts] = useState([]);
@@ -12,7 +13,7 @@ function Contracts() {
     useEffect(() => {
         const fetchContracts = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/contracts/', {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/contracts/`, {
                     headers: {
                         "Authorization": `Token ${token}`
                     }
@@ -26,22 +27,45 @@ function Contracts() {
     }, [token]);
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this contract?')) {
-            try {
-                await axios.delete(`http://127.0.0.1:8000/api/contracts/${id}/`, {
-                    headers: {
-                        "Authorization": `Token ${token}`
-                    }
-                });
-                setContracts(Contracts.filter(contract => contract.id !== id));
-            } catch (error) {
-                console.error('Error deleting contract:', error);
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/contracts/${id}/`, {
+                        headers: {
+                            "Authorization": `Token ${token}`
+                        }
+                    });
+    
+                    setContracts(Contracts.filter(contract => contract.id !== id));
+                    
+                    Swal.fire(
+                        'Deleted!',
+                        'The contract has been deleted.',
+                        'success'
+                    );
+                } catch (error) {
+                    console.error('Error deleting contract:', error);
+                    Swal.fire(
+                        'Error!',
+                        'There was a problem deleting the contract.',
+                        'error'
+                    );
+                }
             }
-        }
+        });
     };
+    
 
     const handleEdit = (contract) => {
-        navigate(`/dashboard/add_contract`, { state: { contract } });
+        navigate(`/dashboard/add_contract`, { state: { item:contract } });
     };
 
     return (

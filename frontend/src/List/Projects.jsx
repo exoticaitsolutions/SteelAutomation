@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Projects() {
@@ -11,7 +12,7 @@ function Projects() {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/projects/', {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/projects/`, {
                     headers: {
                         "Authorization": `Token ${token}`
                     }
@@ -28,25 +29,45 @@ function Projects() {
 
  
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this project?')) {
-            try {
-                await axios.delete(`http://127.0.0.1:8000/api/projects/${id}/`, {
-                    headers: {
-                        "Authorization": `Token ${token}`
-                    }
-                });
-        
-                setProjects(projects.filter(project => project.id !== id));
-               
-            } catch (error) {
-                console.error('Error deleting client:', error);
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/projects/${id}/`, {
+                        headers: {
+                            "Authorization": `Token ${token}`
+                        }
+                    });
+    
+                    setProjects(projects.filter(project => project.id !== id));
+    
+                    Swal.fire(
+                        'Deleted!',
+                        'The project has been deleted.',
+                        'success'
+                    );
+                } catch (error) {
+                    console.error('Error deleting project:', error);
+                    Swal.fire(
+                        'Error!',
+                        'There was a problem deleting the project.',
+                        'error'
+                    );
+                }
             }
-        }
+        });
     };
-
+    
    
     const handleEdit = (project) => {
-        navigate(`/dashboard/add_project`, { state: { project } }); 
+        navigate(`/dashboard/add_project`, { state: { item: project } }); 
     };
 
     return (
@@ -82,8 +103,8 @@ function Projects() {
                                         {userRole === 'ADMIN' && (
                                         <td>
                                             <div className='action_btn'>
-                                                <button onClick={() => handleEdit(project)}><i class="fas fa-edit"/></button>
-                                                <button onClick={() => handleDelete(project.id)}><i class="fas fa-calendar"/></button>
+                                                <button onClick={() => handleEdit(project)}><i className="fas fa-edit"/></button>
+                                                <button onClick={() => handleDelete(project.id)}><i className="fas fa-calendar"/></button>
                                             </div>
                                         </td>
                                         )}

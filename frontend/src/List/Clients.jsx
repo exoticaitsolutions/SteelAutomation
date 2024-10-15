@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 function Clients() {
     const [clients, setClients] = useState([]);
@@ -12,7 +13,7 @@ function Clients() {
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/clients/', {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/clients/`, {
                     headers: {
                         "Authorization": `Token ${token}`
                     }
@@ -29,26 +30,47 @@ function Clients() {
 
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this client?')) {
-            try {
-                await axios.delete(`http://127.0.0.1:8000/api/clients/${id}/`, {
-                    headers: {
-                        "Authorization": `Token ${token}`
-                    }
-                });
-
-                setClients(clients.filter(client => client.id !== id));
-
-            } catch (error) {
-                console.error('Error deleting client:', error);
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/clients/${id}/`, {
+                        headers: {
+                            "Authorization": `Token ${token}`
+                        }
+                    });
+    
+                    setClients(clients.filter(client => client.id !== id));
+    
+                    Swal.fire(
+                        'Deleted!',
+                        'The client has been deleted.',
+                        'success'
+                    );
+                } catch (error) {
+                    console.error('Error deleting client:', error);
+                    Swal.fire(
+                        'Error!',
+                        'There was a problem deleting the client.',
+                        'error'
+                    );
+                }
             }
-        }
+        });
     };
-
+    
 
     const handleEdit = (client) => {
-        navigate(`/dashboard/add_client`, { state: { client } });
+        navigate(`/dashboard/add_client`, { state: { item: client } }); 
     };
+    
 
     return (
         <section className="List">

@@ -22,11 +22,11 @@ return (
                         <span className="nav-item">Home</span>
                     </Link></li>
                     {/* <li><Link to="/dashboard/entity">
-                    <i class="fas fa-address-card"></i>
+                    <i className="fas fa-address-card"></i>
                         <span className="nav-item">Entity</span>
                     </Link></li> */}
                     <li><Link to="/dashboard/payment_processing">
-                    <i class="fas fa-compass"></i>
+                    <i className="fas fa-compass"></i>
                         <span className="nav-item">Processing_Payment</span>
                     </Link></li>
                     <li><Link to="/dashboard/clients">
