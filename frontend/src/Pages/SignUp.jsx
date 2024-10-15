@@ -16,16 +16,14 @@ function SignUp() {
         e.preventDefault();
         setErrorMessage("");
         
-        // Basic validation
+   
         if (!email || !username || !password || !confirm_password) {
-            // setErrorMessage("All fields are required.");
             const networkErrorMessage = "All fields are required.";
             setErrorMessage(networkErrorMessage);
             toast.error(networkErrorMessage);
             return;
         }
         if (password !== confirm_password) {
-            // setErrorMessage("Passwords do not match.");
             const networkErrorMessage = "Passwords do not match.";
             setErrorMessage(networkErrorMessage);
             toast.error(networkErrorMessage);
@@ -35,7 +33,7 @@ function SignUp() {
         console.log("Submitting:", { email, username, password, confirm_password});
 
         try {
-            const response = await axios.post("http://127.0.0.1:8000/api/signup/", {
+            const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/signup/`, {
                 email,
                 username,
                 password,
@@ -60,11 +58,8 @@ function SignUp() {
         <div className="login-Page">
             <div className="container">
                 <div className="login-box">
-
                     <img src="login.png" alt="" />
                     <h2>Sign Up</h2>
-
-                    {/* {errorMessage && <p className="error">{errorMessage}</p>} */}
                     <form className="signUp-form" onSubmit={submitForm}>
                         <input type="text" placeholder="E-mail" autoComplete="email" required onChange={e => setEmail(e.target.value)} />
                         <input type="text" placeholder="Username" autoComplete="Username" required onChange={e => setUsername(e.target.value)} />
@@ -72,9 +67,7 @@ function SignUp() {
                         <input type="password" placeholder="Confirm-Password" autoComplete="Confirm-Password" required onChange={e => setConfirmPassword(e.target.value)} />
                         <button>Sign Up</button>
                     </form>
-
                     <div className="login-btn">
-
                     </div>
                 </div>
             </div>

@@ -5,56 +5,55 @@ import { toast, ToastContainer } from "react-toastify";
 
 function AddClient() {
 
-    const [username, setUsername] = useState("");
-    const [submitData, setSubmitData] = useState(null);
-    const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [submitData, setSubmitData] = useState(null);
+  const [error, setError] = useState("");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!username.trim()) { 
-            setError("please enter entity name "); 
-            return; 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!username.trim()) {
+      setError("please enter entity name ");
+      return;
+    }
+    setError("");
+    setSubmitData(username);
+  };
+
+  useEffect(() => {
+    const createEntity = async () => {
+      if (submitData) {
+        const token = localStorage.getItem("userToken");
+
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/entities/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Token ${token}`
+            },
+            body: JSON.stringify({ entity_name: submitData }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+
+          //   const data = await response.json();
+          //   console.log("Entity created:", data);
+          toast.success("Entity created successfully!");
+          setUsername("");
+        } catch (error) {
+          console.error("Error creating entity:", error);
         }
-        setError("");
-        setSubmitData(username); 
+      }
     };
 
-    useEffect(() => {
-        const createEntity = async () => {
-          if (submitData) {
-            const token = localStorage.getItem("userToken");
+    createEntity();
+  }, [submitData]);
 
-            try {
-              const response = await fetch("http://127.0.0.1:8000/api/entities/", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization":`Token ${token}` 
-                },
-                body: JSON.stringify({ entity_name: submitData }), 
-              });
-    
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              
-            //   const data = await response.json();
-            //   console.log("Entity created:", data);
-              toast.success("Entity created successfully!");
-              setUsername("");
-            } catch (error) {
-              console.error("Error creating entity:", error);
-            }
-          }
-        };
-    
-        createEntity();
-      }, [submitData]);
-
-return (
-
+  return (
     <div className="container">
-      <Sidebar/>
+      <Sidebar />
       <section className="main">
         <div className="main-top">
           <div className="heading">
@@ -69,7 +68,7 @@ return (
                 <div className="fields_main">
                   <div className="sec_field">
                     <label>Entity Name</label>
-                    <input type="text" placeholder="Entity Name" value={username} onChange={(e) => setUsername(e.target.value)}/>
+                    <input type="text" placeholder="Entity Name" value={username} onChange={(e) => setUsername(e.target.value)} />
                     {error && <div className="error-message">{error}</div>}
                   </div>
                 </div>

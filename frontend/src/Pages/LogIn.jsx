@@ -13,14 +13,13 @@ function LogIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-
   const submitForm = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
     console.log("Submitting:", { email, password });
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/login/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/login/`, {
         email,
         password,
       });
