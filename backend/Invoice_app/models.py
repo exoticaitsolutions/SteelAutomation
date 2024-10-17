@@ -68,20 +68,29 @@ class Schedule(models.Model):
         return f"Schedule {self.schedule_id} for {self.contract}"
     
 
-class Payment(models.Model):
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
-    payment_category = models.CharField(max_length=255, unique=True)
-    payment_sent_date = models.DateField(null=True, blank=True)
-    payment_notice_back_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=50, blank=True)
-    claiming_value = models.DecimalField(max_digits=10, decimal_places=2)
-    contractor_value = models.DecimalField(max_digits=10, decimal_places=2)
-    final_value = models.DecimalField(max_digits=10, decimal_places=2)
+class Payment(models.Model):    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='payments')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
+    payment_category = models.CharField(max_length=255)
+    payment_sent_date = models.DateField()
+    payment_notice_back_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return f"Payment {self.payment_id} for {self.contract}"
+        return f"Payment for {self.project.project_name} - {self.payment_category }"
+
+
+class InvoiceMethod(models.Model):
+    payment = models.ForeignKey('Payment', on_delete=models.CASCADE, related_name='invoice_methods')
+    category = models.CharField(max_length=255)
+    zone = models.CharField(max_length=255, blank=True, null=True)
+    account_total = models.DecimalField(max_digits=10, decimal_places=2)
+    progress = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # e.g., 50.00 for 50%
+    interim = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    comment = models.TextField(blank=True, null=True)
     
+    def __str__(self):
+        return f"Invoice Method for Payment {self.payment.id} - Category: {self.category}"
+
 
 class EmailReminder(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)

@@ -7,7 +7,7 @@ from Invoice_app.models import User, Entity, Client
 from django.contrib.auth.backends import ModelBackend
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import Contract, Payment, Project, Role_CHOICES, User, Schedule
+from .models import Contract, InvoiceMethod, Payment, Project, Role_CHOICES, User, Schedule
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -111,14 +111,6 @@ class LoginSerializer(serializers.Serializer):
         token, created = Token.objects.get_or_create(user=user)
 
         attrs['user'] = user
-
-
-
-
-
-
-
-        
         attrs['token'] = token.key
         return attrs
 
@@ -197,8 +189,21 @@ class PaymentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         
-        representation['contract'] = model_to_dict(instance.contract, fields=[field.name for field in instance.contract._meta.fields])
-        representation['schedule'] = model_to_dict(instance.schedule, fields=[field.name for field in instance.schedule._meta.fields])
+        representation['project'] = model_to_dict(instance.project, fields=[field.name for field in instance.project._meta.fields])
+        representation['client'] = model_to_dict(instance.client, fields=[field.name for field in instance.client._meta.fields])
+                
+        return representation
+    
+
+class InvoiceMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceMethod
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        representation['payment'] = model_to_dict(instance.payment, fields=[field.name for field in instance.payment._meta.fields])
                 
         return representation
 

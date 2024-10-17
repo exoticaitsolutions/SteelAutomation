@@ -1,14 +1,14 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .serializers import ChangePasswordSerializer, ContractSerializer, ForgetPasswordSerializer, LoginSerializer, PaymentSerializer, ProjectSerializer, ScheduleSerializer, SignUpSerializer, UserSerializer
+from .serializers import ChangePasswordSerializer, ContractSerializer, ForgetPasswordSerializer, InvoiceMethodSerializer, LoginSerializer, PaymentSerializer, ProjectSerializer, ScheduleSerializer, SignUpSerializer, UserSerializer
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Client, Contract, Entity, Payment, Project, Schedule, User
+from .models import Client, Contract, Entity, InvoiceMethod, Payment, Project, Schedule, User
 from .serializers import EntitySerializer, ClientSerializer
 from .permissions import IsAdminUserPermission
 from rest_framework.authentication import TokenAuthentication
@@ -35,7 +35,6 @@ class LoginView(generics.GenericAPIView):
             'status': status.HTTP_200_OK,
             'role': role
         }, status=status.HTTP_200_OK)
-
 
 
 class SignUpView(generics.CreateAPIView):
@@ -375,7 +374,7 @@ class ScheduleRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({
-            'message': 'Contract updated successfully',
+            'message': 'Schedule updated successfully',
             'contract': serializer.data
         }, status=status.HTTP_200_OK)
 
@@ -385,7 +384,7 @@ class ScheduleRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({
-            'message': 'Contract partially updated successfully',
+            'message': 'Schedule partially updated successfully',
             'contract': serializer.data
         }, status=status.HTTP_200_OK)
 
@@ -393,7 +392,7 @@ class ScheduleRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView)
         contract = self.get_object()
         contract.delete()
         return Response({
-            'message': 'Contract deleted successfully'
+            'message': 'Schedule deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
 
 
@@ -442,7 +441,7 @@ class PaymentRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({
-            'message': 'Contract updated successfully',
+            'message': 'Payment updated successfully',
             'contract': serializer.data
         }, status=status.HTTP_200_OK)
 
@@ -452,7 +451,7 @@ class PaymentRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({
-            'message': 'Contract partially updated successfully',
+            'message': 'Payment partially updated successfully',
             'contract': serializer.data
         }, status=status.HTTP_200_OK)
 
@@ -460,5 +459,72 @@ class PaymentRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
         contract = self.get_object()
         contract.delete()
         return Response({
-            'message': 'Contract deleted successfully'
+            'message': 'Payment deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+    
+
+class InvoiceMethodListCreateAPIView(generics.ListCreateAPIView):
+    queryset = InvoiceMethod.objects.all()
+    serializer_class = InvoiceMethodSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUserPermission]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super(InvoiceMethodListCreateAPIView, self).get_permissions()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'message': 'Invoice created successfully',
+            'client': serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+
+class InvoiceMethodRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = InvoiceMethod.objects.all()
+    serializer_class = InvoiceMethodSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAdminUserPermission]
+        return super(InvoiceMethodRetrieveUpdateDeleteAPIView, self).get_permissions()
+
+    def retrieve(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Invoice updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        contract = self.get_object()
+        serializer = self.get_serializer(contract, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            'message': 'Invoice partially updated successfully',
+            'contract': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        contract = self.get_object()
+        contract.delete()
+        return Response({
+            'message': 'Invoice deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
