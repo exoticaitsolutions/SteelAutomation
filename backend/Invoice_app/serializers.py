@@ -181,14 +181,22 @@ class ScheduleSerializer(serializers.ModelSerializer):
         return representation
     
 
+from rest_framework import serializers
+from .models import Payment
+
 class PaymentSerializer(serializers.ModelSerializer):
+    payment_sent_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'])
+    payment_notice_back_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False)
+
     class Meta:
         model = Payment
-        fields = '__all__'
+        fields = ['entity', 'project', 'client', 'payment_category', 'payment_sent_date', 'payment_notice_back_date']
+
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         
+        representation['entity'] = model_to_dict(instance.entity, fields=[field.name for field in instance.entity._meta.fields])
         representation['project'] = model_to_dict(instance.project, fields=[field.name for field in instance.project._meta.fields])
         representation['client'] = model_to_dict(instance.client, fields=[field.name for field in instance.client._meta.fields])
                 
@@ -198,6 +206,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 class InvoiceMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceMethod
+        # fields = 
         fields = '__all__'
     
     def to_representation(self, instance):

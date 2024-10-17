@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .space-between {
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            color: #50509b;
+            font-weight: 600;
+            font-size: 40px;
+        }
+
+        h2 {
+            color: #50509b;
+            font-weight: 200;
+            font-size: 30px;
+        }
+
+        .line {
+            height: 2px;
+            background-color: #50509b;
+        }
+
+        .second-main-div {
+            padding: 35px 0;
+            justify-content:space-between ;
+        }
+
+        .client-main {
+            width: 44%;
+        }
+
+        .client-heading {
+            background-color: #50509b;
+            padding: 5px 5px;
+        }
+
+        .client-heading span {
+            color: white;
+            font-weight: 500;
+        }
+
+        .address {
+            width: 35%;
+        }
+
+        .address p {
+
+            font-size: 12px;
+            color: #201c1c;
+            padding: 0 10px;
+            line-height: 25px;
+        }
+
+        .project-DUB-main {
+            width: 42%;
+        }
+
+        .project-row p {
+            margin: 0px;
+        }
+
+        .project-dub-heading {
+            background-color: #50509b;
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+        }
+
+        .project-dub-heading span {
+            color: white;
+            font-weight: 500;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <section class="main-section">
+        <div class="main-header flex space-between">
+            <div class="header">
+                <h1>Application For Payment</h1>
+                <h2>Cavan Roofing & Engineering</h2>
+                <p>Knockaterry, Cloverhill, Co. Cavan 047 55189 / 047 55000 Cavanroofing.Ie</p>
+            </div>
+            <div class="logo-image">
+                <img src="https://cdn.pixabay.com/photo/2016/03/27/19/32/book-1283865_640.jpg" alt="Client Image"
+                    height="50%" width="100%" />
+            </div>
+        </div>
+        <hr class="line" />
+
+        <div class="second-main-div flex">
+
+            <div class="client-main">
+                <div class="client-heading">
+                    <span>Client</span>
+                </div>
+                <div class="address">
+                    <p>{{client_name}}
+                        {{client_address}}
+                        {{project_name}}</p>
+                </div>
+                <hr class="line" />
+            </div>
+
+            <div class="project-DUB-main">
+                <div class="project-dub-heading">
+                    <span>Project</span>
+                    <span>DUB 010</span>
+                </div>
+                <div class="project-row flex space-between">
+                    <p>Application Number:</p>
+                    <span>{{application_number}}</span>
+                </div>
+                <hr class="line" />
+                <div class="project-row flex space-between">
+                    <p>For Works Complete to:</p>
+                    <span>{{works_complete_date}}</span>
+                </div>
+                <hr class="line" />
+                <div class="project-row flex space-between">
+                    <p>Application Date:</p>
+                    <span>{{application_date}}</span>
+                </div>
+                <hr class="line" />
+                <div class="project-row flex space-between">
+                    <p>Payment Date:</p>
+                    <span>{{payment_date}}</span>
+                </div>
+                <hr class="line" />
+
+            </div>
+        </div>
+
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Ref</th>
+                    <th>Category</th>
+                    <th>% Progrss</th>
+                    <th>Zone</th>
+                    <th>Account Total</th>
+                    <th>Interim Payment</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.progress }}</td>  <!-- Check this line -->
+                    <td>{{ item.zone }}</td>
+                    <td>{{ item.account_total }}</td>
+                    <td>{{ item.interim }}</td> <!-- Ensure this is the correct field -->
+                    <td>{{ item.comment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+        <hr class="line" />
+        <tbody>
+            <tr>
+                <td>Account Total : </td>
+                <td>{{ account_total }}</td>
+
+                <td>Progress Total:</td>
+                <td>{{ progress_total }}</td>
+            </tr>
+        </tbody>
+        <hr class="line" />
+    </section>
+</body>
+
+</html>

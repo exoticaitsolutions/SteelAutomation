@@ -68,7 +68,11 @@ nav ul li a:hover {
   background-color: #ddd;
 }
 
-
+.add-heading{
+  width: 100%;
+  display: flex;
+  gap: 73%;
+}
 .fields_main {
   display: flex;
   flex-wrap: wrap;
@@ -218,6 +222,8 @@ select :focus {
 .submit_btn {
   text-align: center;
   display: flex;
+  width: 44%;
+  gap: 5%;
 }
 
 
@@ -312,7 +318,25 @@ a:hover {
   position: absolute;
   bottom: 0;
 }
+.addmore_btn{
+  width: 13%;
+  margin-left: auto;
+}
+.btn {
+  background-color: #f1f1f1;
+  color: black;
+  font-size: 16px;
+  padding: 8px 4px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;
+}
 
+ .btn:hover {
+  background-color: black;
+  color: white;
+}
 /* Main Section */
 .main {
   position: relative;

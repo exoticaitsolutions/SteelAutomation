@@ -11,11 +11,11 @@ function LogIn() {
   const [email, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+ 
 
   const submitForm = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
+   
 
     console.log("Submitting:", { email, password });
     try {
@@ -32,11 +32,9 @@ function LogIn() {
       if (error.response) {
         const errorData = error.response.data;
         const errorMsg = errorData.email ? errorData.email.join(', ') : "Login failed. Please try again.";
-        setErrorMessage(errorMsg);
         toast.error(errorMsg);
       } else {
         const networkErrorMessage = "Network error. Please try again later.";
-        setErrorMessage(networkErrorMessage);
         toast.error(networkErrorMessage);
       }
     }

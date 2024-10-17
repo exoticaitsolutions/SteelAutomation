@@ -1,3 +1,4 @@
+from audioop import reverse
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -13,6 +14,24 @@ from .serializers import EntitySerializer, ClientSerializer
 from .permissions import IsAdminUserPermission
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated # type: ignore
+from django.http import JsonResponse, Http404
+from django.views.static import serve
+from django.conf import settings
+from django.shortcuts import render
+from .models import Payment
+from .serializers import InvoiceMethodSerializer
+import pdfkit
+from django.urls import reverse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.template.loader import render_to_string
+from .models import Payment, InvoiceMethod
+from .serializers import InvoiceMethodSerializer
+import pdfkit
+from django.http import HttpResponse
+from jinja2 import Environment, FileSystemLoader
+from django.http import JsonResponse 
 
 
 class LoginView(generics.GenericAPIView):
@@ -528,3 +547,60 @@ class InvoiceMethodRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPI
         return Response({
             'message': 'Invoice deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
+    
+
+class GenerateInvoicePDF(APIView):
+    def get(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(id=payment_id)
+            invoice_methods = payment.invoice_methods.all()
+        except Payment.DoesNotExist:
+            return Response({'error': 'Payment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize invoice methods
+        serialized_items = InvoiceMethodSerializer(invoice_methods, many=True).data
+
+        # Calculate the account total and progress total dynamically
+        account_total = sum(float(item['account_total']) for item in serialized_items)
+        progress_total = sum(float(item['progress']) * float(item['account_total']) / 100 for item in serialized_items)
+
+        invoice_data = {
+            "client_name": payment.client.client_name,
+            "client_address": payment.client.address,
+            "project_name": payment.project.project_name,
+            "application_number": payment.id,
+            "works_complete_date": "31 August 2024",
+            "application_date": payment.payment_sent_date,
+            "payment_date": payment.payment_notice_back_date or "N/A",
+            "account_total": account_total,
+            "progress_total": progress_total,
+            "items": serialized_items
+        }
+
+        # Load and render the Jinja2 template
+        template_dir = '/home/dell/Steel-Automation/SteelAutomation/backend/Invoice_app/templates'
+        env = Environment(loader=FileSystemLoader(template_dir))
+        template = env.get_template('Invoice.html')
+
+        html_content = template.render(invoice_data)
+
+        # Generate PDF from the rendered HTML
+        pdfkit_config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
+        output_filename = f'invoice_{payment_id}.pdf'
+        output_path = f'/home/dell/Steel-Automation/SteelAutomation/backend/Invoice_app/pdf_files/{output_filename}'
+
+        try:
+            pdfkit.from_string(html_content, output_path, configuration=pdfkit_config)
+
+            # Construct the URL for the generated PDF
+            pdf_url = request.build_absolute_uri(reverse('generated_invoice_pdf', kwargs={'filename': output_filename}))
+            return JsonResponse({'pdf_url': pdf_url}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def serve_pdf(request, filename):
+    try:
+        return serve(request, filename, document_root=f"{settings.BASE_DIR}/Invoice_app/pdf_files/")
+    except FileNotFoundError:
+        raise Http404("PDF not found.")

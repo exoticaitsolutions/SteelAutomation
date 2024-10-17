@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from Invoice_app.utils import UserManager
+from django.utils import formats
 
 Role_CHOICES = [
     ("ADMIN", "Admin"),
@@ -69,14 +70,23 @@ class Schedule(models.Model):
     
 
 class Payment(models.Model):    
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE, related_name='entitys')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='payments')
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clients')
     payment_category = models.CharField(max_length=255)
     payment_sent_date = models.DateField()
     payment_notice_back_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"Payment for {self.project.project_name} - {self.payment_category }"
+    
+    def get_payment_sent_date(self):
+        return self.payment_sent_date.strftime('%d/%m/%Y')
+
+    def get_payment_notice_back_date(self):
+        if self.payment_notice_back_date:
+            return self.payment_notice_back_date.strftime('%d/%m/%Y')
+        return None  # Or return an empty string or some default value
 
 
 class InvoiceMethod(models.Model):
