@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
+import Topbar from '../components/Topbar';
 
 function Projects() {
     const [projects, setProjects] = useState([]);
@@ -71,9 +72,11 @@ function Projects() {
     };
 
     return (
-        <section className="List">
+       
             <div className="container">
                 <Sidebar />
+                <section className='main'>
+                <Topbar/>
                 <div className="list-main">
                 {userRole === 'ADMIN' && (
                     <div className='add_btn'>
@@ -118,8 +121,9 @@ function Projects() {
                         </tbody>
                     </table>
                 </div>
+                </section>
             </div>
-        </section>
+    
     );
 }
 

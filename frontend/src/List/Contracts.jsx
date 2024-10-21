@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import Topbar from '../components/Topbar';
 
 function Contracts() {
     const [Contracts, setContracts] = useState([]);
@@ -69,9 +70,10 @@ function Contracts() {
     };
 
     return (
-        <section className="List">
             <div className="container">
                 <Sidebar />
+                <section className='main'>
+                <Topbar/>
                 <div className="list-main">
                 {userRole === 'ADMIN' && (
                     <div className='add_btn'>
@@ -116,8 +118,9 @@ function Contracts() {
                         </tbody>
                     </table>
                 </div>
+</section>
             </div>
-        </section>
+      
     );
 }
 

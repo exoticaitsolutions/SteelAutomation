@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import Topbar from '../components/Topbar';
 
 function Clients() {
     const [clients, setClients] = useState([]);
@@ -10,6 +11,7 @@ function Clients() {
     const userRole = localStorage.getItem('userRole');
 
     const navigate = useNavigate();
+    
     useEffect(() => {
         const fetchClients = async () => {
             try {
@@ -28,7 +30,6 @@ function Clients() {
         fetchClients();
     }, [token]);
 
-
     const handleDelete = async (id) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -46,9 +47,9 @@ function Clients() {
                             "Authorization": `Token ${token}`
                         }
                     });
-    
+
                     setClients(clients.filter(client => client.id !== id));
-    
+
                     Swal.fire(
                         'Deleted!',
                         'The client has been deleted.',
@@ -65,65 +66,66 @@ function Clients() {
             }
         });
     };
-    
+
 
     const handleEdit = (client) => {
-        navigate(`/dashboard/add_client`, { state: { item: client } }); 
+        navigate(`/dashboard/add_client`, { state: { item: client } });
     };
-    
 
     return (
-        <section className="List">
             <div className="container">
-                <Sidebar />
-                <div className="list-main">
-                    {userRole === 'ADMIN' && (
-                        <div className='add_btn'>
-                            <Link to="/dashboard/add_client"><button>Add Client</button></Link>
-                        </div>
-                    )}
-
-                    <table className='table'>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Address</th>
-                                <th>Entity</th>
-                                {userRole === "ADMIN" && (
-                                <th>Action</th>
-                            )}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {clients.length > 0 ? (
-                                clients.map(client => (
-                                    <tr key={client.id}>
-                                        <td>{client.client_name}</td>
-                                        <td>{client.email}</td>
-                                        <td>{client.address}</td>
-                                        <td>{client.entity.entity_name}</td>
-                                        {userRole === 'ADMIN' && (
-                                            <td>
-                                                <div className='action_btn'>
-                                                    <button onClick={() => handleEdit(client)}><i className="fas fa-edit" /></button>
-                                                    <button onClick={() => handleDelete(client.id)}><i className="fas fa-calendar" /></button>
-                                                </div>
-                                            </td>
-                                        )}
-
-                                    </tr>
-                                ))
-                            ) : (
+                 <Sidebar />
+                <section className='main'>
+                    <Topbar />
+                    <div className="list-main">
+                        {userRole === 'ADMIN' && (
+                            <div className='add_btn'>
+                                <Link to="/dashboard/add_client"><button>Add Client</button></Link>
+                            </div>
+                        )}
+                        <table className='table'>
+                            <thead>
+                                
                                 <tr>
-                                    <td colSpan="5">No clients found</td>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Address</th>
+                                    <th>Entity</th>
+                                    {userRole === "ADMIN" && (
+                                        <th>Action</th>
+                                    )}
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {clients.length > 0 ? (
+                                    clients.map(client => (
+                                        <tr key={client.id}>
+                                            <td>{client.client_name}</td>
+                                            <td>{client.email}</td>
+                                            <td>{client.address}</td>
+                                            <td>{client.entity.entity_name}</td>
+                                            {userRole === 'ADMIN' && (
+                                                <td>
+                                                    <div className='action_btn'>
+                                                        <button onClick={() => handleEdit(client)}><i className="fas fa-edit" /></button>
+                                                        <button onClick={() => handleDelete(client.id)}><i className="fas fa-calendar" /></button>
+                                                    </div>
+                                                </td>
+                                            )}
+
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5">No clients found</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
-        </section>
+     
     );
 }
 

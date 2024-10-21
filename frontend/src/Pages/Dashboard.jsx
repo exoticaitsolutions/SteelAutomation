@@ -1,17 +1,15 @@
 import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
 
 function Dashboard() {
-
   return (
-
     <div className="container">
-      <Sidebar />
-      <section className="main">
-        <div className="dashboard-main-top">
-          <h1>Wecome to the Steel Automation</h1>
-        </div>
-      </section>
-    </div>
+        <Sidebar />
+        <div className="main">
+      <Topbar />
+      </div>
+      </div>
+  
   )
 }
 export default Dashboard;

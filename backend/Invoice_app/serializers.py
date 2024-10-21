@@ -182,37 +182,88 @@ class ScheduleSerializer(serializers.ModelSerializer):
     
 
 from rest_framework import serializers
-from .models import Payment
+from .models import Payment, InvoiceMethod
 
-class PaymentSerializer(serializers.ModelSerializer):
-    payment_sent_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'])
-    payment_notice_back_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False)
+# class PaymentSerializer(serializers.ModelSerializer):
+#     payment_sent_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'])
+#     payment_notice_back_date = serializers.DateField(format='%d/%m/%Y', input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False)
 
-    class Meta:
-        model = Payment
-        fields = ['entity', 'project', 'client', 'payment_category', 'payment_sent_date', 'payment_notice_back_date']
+#     class Meta:
+#         model = Payment
+#         fields = ['entity', 'project', 'client', 'payment_category', 'payment_sent_date', 'payment_notice_back_date']
 
     
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
         
-        representation['entity'] = model_to_dict(instance.entity, fields=[field.name for field in instance.entity._meta.fields])
-        representation['project'] = model_to_dict(instance.project, fields=[field.name for field in instance.project._meta.fields])
-        representation['client'] = model_to_dict(instance.client, fields=[field.name for field in instance.client._meta.fields])
+#         representation['entity'] = model_to_dict(instance.entity, fields=[field.name for field in instance.entity._meta.fields])
+#         representation['project'] = model_to_dict(instance.project, fields=[field.name for field in instance.project._meta.fields])
+#         representation['client'] = model_to_dict(instance.client, fields=[field.name for field in instance.client._meta.fields])
                 
-        return representation
+#         return representation
     
+
+# class InvoiceMethodSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = InvoiceMethod
+#         # fields = 
+#         fields = '__all__'
+    
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
+        
+#         representation['payment'] = model_to_dict(instance.payment, fields=[field.name for field in instance.payment._meta.fields])
+                
+#         return representation
 
 class InvoiceMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceMethod
-        # fields = 
-        fields = '__all__'
-    
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        
-        representation['payment'] = model_to_dict(instance.payment, fields=[field.name for field in instance.payment._meta.fields])
-                
-        return representation
+        fields = ['id', 'category', 'zone', 'account_total', 'progress', 'interim', 'comment']
 
+class PaymentSerializer(serializers.ModelSerializer):
+    # Nesting the InvoiceMethod serializer here
+    invoice_methods = InvoiceMethodSerializer(many=True)
+
+    class Meta:
+        model = Payment
+        fields = ['id', 'entity', 'project', 'client', 'payment_category', 'payment_sent_date', 'payment_notice_back_date', 'invoice_methods']
+
+    def create(self, validated_data):
+        invoice_methods_data = validated_data.pop('invoice_methods')
+        payment = Payment.objects.create(**validated_data)
+
+        # Create multiple InvoiceMethod entries
+        for invoice_data in invoice_methods_data:
+            InvoiceMethod.objects.create(payment=payment, **invoice_data)
+
+        return payment
+
+    def update(self, instance, validated_data):
+        invoice_methods_data = validated_data.pop('invoice_methods')
+        instance.entity = validated_data.get('entity', instance.entity)
+        instance.project = validated_data.get('project', instance.project)
+        instance.client = validated_data.get('client', instance.client)
+        instance.payment_category = validated_data.get('payment_category', instance.payment_category)
+        instance.payment_sent_date = validated_data.get('payment_sent_date', instance.payment_sent_date)
+        instance.payment_notice_back_date = validated_data.get('payment_notice_back_date', instance.payment_notice_back_date)
+        instance.save()
+
+        # Handle updating invoice methods
+        for invoice_data in invoice_methods_data:
+            invoice_id = invoice_data.get('id')
+            if invoice_id:
+                # Update existing InvoiceMethod
+                invoice = InvoiceMethod.objects.get(id=invoice_id, payment=instance)
+                invoice.category = invoice_data.get('category', invoice.category)
+                invoice.zone = invoice_data.get('zone', invoice.zone)
+                invoice.account_total = invoice_data.get('account_total', invoice.account_total)
+                invoice.progress = invoice_data.get('progress', invoice.progress)
+                invoice.interim = invoice_data.get('interim', invoice.interim)
+                invoice.comment = invoice_data.get('comment', invoice.comment)
+                invoice.save()
+            else:
+                # Create a new InvoiceMethod
+                InvoiceMethod.objects.create(payment=instance, **invoice_data)
+
+        return instance

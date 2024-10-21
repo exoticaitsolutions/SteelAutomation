@@ -1,102 +1,124 @@
 import "../App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
+import { useLocation, useNavigate } from 'react-router-dom';
+import useFormHandler from '../hooks/useFormHandler';
+import Topbar from "../components/Topbar";
 
 function PaymentProcessing() {
-    const [formData, setFormData] = useState({
+    const token = localStorage.getItem("userToken");
+    const location = useLocation();
+    const navigate = useNavigate();
+
+
+    const initialValues = {
         entity: "",
         project: "",
         client: "",
-        paymentCategory: "",
-        paymentSentDate: "",
+        payment_category: "",
+        payment_sent_date: "",
         paymentNoticeBackDate: "",
-        status: "",
-        claimingValue: "",
-        contractorValue: "",
-        finalValue: ""
-    });
-
-    const [extraFields, setExtraFields] = useState([]);
-
-    useEffect(() => {
-        const storedData = localStorage.getItem("paymentProcessingData");
-        if (storedData) {
-            setFormData(JSON.parse(storedData));
-        }
-    }, []);
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        localStorage.setItem("paymentProcessingData", JSON.stringify(formData));
-        alert("Data submitted and saved to local storage");
+
+    const apiUrls = {
+        baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/payment/`,
+        entityUrl: `${process.env.REACT_APP_API_BASE_URL}/api/entities/`,
+        clientsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/clients/`,
+        projectsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/projects/`,
+        redirectUrl: '/dashboard/payment_processing',
     };
+
+
+    const [extraFields, setExtraFields] = useState([{
+        status: '',
+        claimingValue: '',
+        contractorValue: '',
+        finalValue: '',
+        interimPayment: '',
+        comment: ''
+    }]);
+
 
     const addFields = () => {
         setExtraFields([...extraFields, { status: "", claimingValue: "", contractorValue: "", finalValue: "", interimPayment: "", comment: "" }]);
     };
 
+
     const removeFields = (index) => {
-        const newExtraFields = extraFields.filter((_, i) => i !== index);
-        setExtraFields(newExtraFields);
+        const newFields = extraFields.filter((_, i) => i !== index);
+        setExtraFields(newFields);
     };
+
+    const { formValues, entities, projects, clients, handleInputChange, handleSubmitBoth } = useFormHandler(initialValues, apiUrls, token, navigate, location);
 
     return (
         <div className="container">
             <Sidebar />
             <section className="main">
-                <div className="main-top">
-                    <div className="heading">
-                        <h2>Payment Processing</h2>
-                    </div>
-                </div>
+                <Topbar />
                 <div className="main-skills">
                     <section className="add_client_page">
                         <div className="container">
-                            <form onSubmit={handleSubmit} className="form">
+                            <form onSubmit={(e) => handleSubmitBoth(e, extraFields)} className="form">
                                 <div className="fields_main">
+                                    <div className="table-heading">
+                                        <h2>Payment Processing</h2>
+                                    </div>
                                     <div className="sec_field">
                                         <label>Entity :</label>
                                         <select
                                             name="entity"
-                                            value={formData.entity}
-                                            onChange={handleChange}
+                                            value={formValues.entity}
+                                            onChange={handleInputChange}
+                                            required
                                         >
-                                            <option value="">Select Client</option>
-                                            <option value="CAVAM">CAVAM</option>
-                                            <option value="ERN Steel">ERN Steel</option>
-                                            <option value="Struct Steel">Struct Steel</option>
+                                            <option value="">Select Entity</option>
+                                            {entities.map((entity) => (
+                                                <option key={entity.id} value={entity.id}>
+                                                    {entity.entity_name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="sec_field">
                                         <label>Project :</label>
                                         <select
                                             name="project"
-                                            value={formData.project}
-                                            onChange={handleChange}
+                                            value={formValues.project}
+                                            onChange={handleInputChange}
+                                            required
                                         >
-                                            <option value="">Select Project</option>
-                                            <option value="Radius Plastics">Radius Plastics</option>
-                                            <option value="DUB 010">DUB 010</option>
+                                            <option value="" disabled>Select Project</option>
+                                            {projects.length > 0 ? (
+                                                projects.map((project) => (
+                                                    <option key={project.id} value={project.id}>
+                                                        {project.project_name}
+                                                    </option>
+                                                ))
+                                            ) : (
+                                                <option disabled>No projects available</option>
+                                            )}
                                         </select>
                                     </div>
                                     <div className="sec_field">
                                         <label>Client :</label>
                                         <select
                                             name="client"
-                                            value={formData.client}
-                                            onChange={handleChange}
+                                            value={formValues.client}
+                                            onChange={handleInputChange}
+                                            required
                                         >
                                             <option value="">Select Client</option>
-                                            <option value="D Gibson Building">D Gibson Building</option>
-                                            <option value="Joinery Contractor">Joinery Contractor</option>
-                                            <option value="Elliott Construction">Elliott Construction</option>
+                                            {clients.length > 0 ? (
+                                                clients.map((client) => (
+                                                    <option key={client.id} value={client.id}>
+                                                        {client.client_name}
+                                                    </option>
+                                                ))
+                                            ) : (
+                                                <option disabled>No clients available</option>
+                                            )}
                                         </select>
                                     </div>
 
@@ -104,9 +126,9 @@ function PaymentProcessing() {
                                         <label>Payment Category:</label>
                                         <input
                                             type="text"
-                                            name="paymentCategory"
-                                            value={formData.paymentCategory}
-                                            onChange={handleChange}
+                                            name="payment_category"
+                                            value={formValues.payment_category}
+                                            onChange={handleInputChange}
                                             placeholder="Payment Category"
                                         />
                                     </div>
@@ -114,9 +136,9 @@ function PaymentProcessing() {
                                         <label>Payment Sent Date:</label>
                                         <input
                                             type="date"
-                                            name="paymentSentDate"
-                                            value={formData.paymentSentDate}
-                                            onChange={handleChange}
+                                            name="payment_sent_date"
+                                            value={formValues.payment_sent_date}
+                                            onChange={handleInputChange}
                                             placeholder="Payment Sent Date"
                                         />
                                     </div>
@@ -125,8 +147,8 @@ function PaymentProcessing() {
                                         <input
                                             type="date"
                                             name="paymentNoticeBackDate"
-                                            value={formData.paymentNoticeBackDate}
-                                            onChange={handleChange}
+                                            value={formValues.paymentNoticeBackDate}
+                                            onChange={handleInputChange}
                                             placeholder="Payment Notice Back Date"
                                         />
                                     </div>
@@ -163,7 +185,7 @@ function PaymentProcessing() {
                                                     newFields[index].claimingValue = e.target.value;
                                                     setExtraFields(newFields);
                                                 }}
-                                                placeholder="Zone"
+                                                placeholder="Claiming Value"
                                             />
                                         </div>
                                         <div className="sec_field">
@@ -177,11 +199,11 @@ function PaymentProcessing() {
                                                     newFields[index].contractorValue = e.target.value;
                                                     setExtraFields(newFields);
                                                 }}
-                                                placeholder="Account Total"
+                                                placeholder="Contractor Value"
                                             />
                                         </div>
                                         <div className="sec_field">
-                                            <label>% Progress:</label>
+                                            <label>Progress:</label>
                                             <input
                                                 type="text"
                                                 name={`finalValue_${index}`}
@@ -191,15 +213,15 @@ function PaymentProcessing() {
                                                     newFields[index].finalValue = e.target.value;
                                                     setExtraFields(newFields);
                                                 }}
-                                                placeholder="% Progress"
+                                                placeholder="Final Value"
                                             />
                                         </div>
                                         <div className="sec_field">
-                                            <label>Interim Payment:</label>
+                                            <label>Interim:</label>
                                             <input
                                                 type="text"
                                                 name={`interimPayment_${index}`}
-                                                value={field.interimPayment || ""}
+                                                value={field.interimPayment}
                                                 onChange={(e) => {
                                                     const newFields = [...extraFields];
                                                     newFields[index].interimPayment = e.target.value;
@@ -210,10 +232,9 @@ function PaymentProcessing() {
                                         </div>
                                         <div className="sec_field">
                                             <label>Comment:</label>
-                                            <input
-                                                type="text"
+                                            <textarea
                                                 name={`comment_${index}`}
-                                                value={field.comment || ""}
+                                                value={field.comment}
                                                 onChange={(e) => {
                                                     const newFields = [...extraFields];
                                                     newFields[index].comment = e.target.value;

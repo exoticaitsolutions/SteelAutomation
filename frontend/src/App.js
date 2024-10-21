@@ -17,6 +17,7 @@ import PrivateRouter from './PrivateRoute';
 import Clients from './List/Clients';
 import Projects from './List/Projects';
 import Contracts from './List/Contracts';
+import Payments from './List/Payments';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/dashboard/clients" element={<Clients />} />
           <Route path="/dashboard/projects" element={<Projects />} />
           <Route path='/dashboard/contracts' element={<Contracts/>} />
+          <Route path='/dashboard/payments' element={<Payments/>} />
 
           <Route path="/slip" element={<Slip />} />
           <Route path="/slip2" element={<Slip2 />} />

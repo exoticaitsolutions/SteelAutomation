@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2'
 
 function useFormHandler(initialValues, apiUrls, token, navigate, location) {
   const [formValues, setFormValues] = useState(initialValues);
@@ -82,7 +83,6 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     }
   }, [location.state]);
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prevValues) => ({
@@ -91,6 +91,41 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     }));
   };
 
+  const handleSubmitBoth = async (e, extraFields) => {
+    e.preventDefault();
+
+    const dataToSubmit = {
+      ...formValues,
+      payment_notice_back_date: formValues.paymentNoticeBackDate, 
+      invoice_methods: extraFields.map((field, index) => ({
+          id: index + 1, 
+          category: field.status, 
+          zone: field.claimingValue,
+          account_total: field.contractorValue,
+          progress: field.finalValue,
+          interim: field.interimPayment,
+          comment: field.comment, 
+      })),
+  };
+
+    try {
+      const apiUrl = isEditing ? `${apiUrls.baseUrl}${formValues.id}/` : apiUrls.baseUrl;
+      const method = isEditing ? 'put' : 'post';
+      await axios[method](apiUrl, dataToSubmit, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      toast.success(isEditing ? 'Item updated successfully!' : 'Item added successfully!');
+      Swal.fire({
+        title: "Successfully Create",
+        text: "You clicked the button!",
+        icon: "success"
+      });
+      navigate(apiUrls.redirectUrl);
+    } catch (error) {
+      console.error('Error saving item:', error.response ? error.response.data : error.message);
+      toast.error(error.response?.data?.detail || 'Error saving item. Please try again.');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,7 +142,7 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
       toast.error(error.response?.data?.detail || 'Error saving item. Please try again.');
     }
   };
-
+  
   return {
     formValues,
     entities,
@@ -115,7 +150,9 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     projects,
     isEditing,
     handleInputChange,
+    handleSubmitBoth,
     handleSubmit,
+    setIsEditing,
   };
 }
 

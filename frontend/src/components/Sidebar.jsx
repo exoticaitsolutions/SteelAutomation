@@ -2,32 +2,29 @@ import { Link, useNavigate } from "react-router-dom";
 function Sidebar() {
 
     const navigate = useNavigate();
-
     const handleLogout = (e) => {
         e.preventDefault();
         localStorage.removeItem('userToken');
         navigate('/');
     };
+    const Role = localStorage.getItem("userRole");
 return (
+    <div className="sidebar">
         <div className="sidebarmain">
             <nav>
                 <ul>
                     <li><Link to="#" className="logo">
-                        <img src="six.png" alt="admin" />
-                        <span className="nav-item">Admin</span>
+                        <img src="/profile.jpg" alt="admin" />
+                        <span className="nav-item">{Role}</span>
                     </Link></li>
-
+                    <hr className="line"/>
                     <li><Link to="/dashboard">
                         <i className="fas fa-home"></i>
                         <span className="nav-item">Home</span>
                     </Link></li>
-                    {/* <li><Link to="/dashboard/entity">
-                    <i className="fas fa-address-card"></i>
-                        <span className="nav-item">Entity</span>
-                    </Link></li> */}
                     <li><Link to="/dashboard/payment_processing">
                     <i className="fas fa-compass"></i>
-                        <span className="nav-item">Processing_Payment</span>
+                        <span className="nav-item">Payments</span>
                     </Link></li>
                     <li><Link to="/dashboard/clients">
                         <i className="fas fa-user"></i>
@@ -51,7 +48,6 @@ return (
                         <i className="fas fa-question-circle"></i>
                         <span className="nav-item">Help</span>
                     </Link></li>
-
                     <li><Link to="" className="logout" onClick={handleLogout}>
                         <i className="fas fa-sign-out-alt"></i>
                         <span className="nav-item">Log out</span>
@@ -59,6 +55,8 @@ return (
                 </ul>
             </nav>
         </div>
+        </div>
+
     );
 }
 export default Sidebar;
