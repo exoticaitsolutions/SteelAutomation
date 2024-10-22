@@ -108,9 +108,9 @@ function Payments() {
                             {payments.length > 0 ? (
                                 payments.map((payment) => (
                                     <tr key={payment.id}>
-                                        <td>{payment.entity}</td> 
-                                        <td>{payment.project}</td> 
-                                        <td>{payment.client}</td>
+                                           <td>{payment.entity.entity_name}</td> 
+                                        <td>{payment.project.project_name}</td> 
+                                        <td>{payment.client.client_name}</td>
                                         <td>{payment.payment_category}</td>
                                         <td>{payment.payment_sent_date}</td>
                                         <td>{payment.payment_notice_back_date}</td>

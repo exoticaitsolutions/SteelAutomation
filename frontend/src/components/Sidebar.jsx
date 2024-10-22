@@ -22,7 +22,7 @@ return (
                         <i className="fas fa-home"></i>
                         <span className="nav-item">Home</span>
                     </Link></li>
-                    <li><Link to="/dashboard/payment_processing">
+                    <li><Link to="/dashboard/payments">
                     <i className="fas fa-compass"></i>
                         <span className="nav-item">Payments</span>
                     </Link></li>

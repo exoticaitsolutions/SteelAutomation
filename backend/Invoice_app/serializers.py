@@ -267,3 +267,11 @@ class PaymentSerializer(serializers.ModelSerializer):
                 InvoiceMethod.objects.create(payment=instance, **invoice_data)
 
         return instance
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        representation['entity'] = model_to_dict(instance.entity, fields=[field.name for field in instance.entity._meta.fields])
+        representation['project'] = model_to_dict(instance.project, fields=[field.name for field in instance.project._meta.fields])
+        representation['client'] = model_to_dict(instance.client, fields=[field.name for field in instance.client._meta.fields])
+                
+        return representation

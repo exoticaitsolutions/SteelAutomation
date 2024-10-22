@@ -41,6 +41,7 @@ function SignUp() {
             });
             toast.success("Sign Up successful!");
             navigate("/");
+            console.log(response)
 
         } catch (error) {
             if (error.response) {
