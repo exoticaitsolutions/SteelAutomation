@@ -644,18 +644,28 @@ class GenerateXLS(APIView):
         }
 
         # Load and update the Excel file
-        file_path1 = r"C:\Users\home\Videos\Komal Work\Steel-Automation\SteelAutomation\backend\Invoice_app\1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
-        file_path2 = r"C:\Users\home\Videos\Komal Work\Steel-Automation\SteelAutomation\backend\Invoice_app\2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
-        file_path3 = r"C:\Users\home\Videos\Komal Work\Steel-Automation\SteelAutomation\backend\Invoice_app\3. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
-        file_path4 = r"C:\Users\home\Videos\Komal Work\Steel-Automation\SteelAutomation\backend\Invoice_app\4. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
+        length_of_boq_summary = len(serialized_items)
+        
+        # file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+        if length_of_boq_summary < 5:
+            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+
+        elif 5 <= length_of_boq_summary < 21:
+            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/3. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+        if length_of_boq_summary < 16:
+            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/4. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+        else:
+            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+
+        print("file path : ", file_path)
 
         # wb = openpyxl.load_workbook(file_path, keep_vba=True)
         # Load the workbooks with VBA support
-        wb1 = openpyxl.load_workbook(file_path1, keep_vba=True)
-        wb2 = openpyxl.load_workbook(file_path2, keep_vba=True)
-        wb3 = openpyxl.load_workbook(file_path3, keep_vba=True)
-        wb4 = openpyxl.load_workbook(file_path4, keep_vba=True)
-
+        wb1 = openpyxl.load_workbook(file_path, keep_vba=True)
+        # wb2 = openpyxl.load_workbook(file_path, keep_vba=True)
+        # wb3 = openpyxl.load_workbook(file_path, keep_vba=True)
+        # wb4 = openpyxl.load_workbook(file_path, keep_vba=True)
+        selected_workbook = wb1
         # Update all sheets
         sheet = wb1['AFP Summary']
 
@@ -696,6 +706,8 @@ class GenerateXLS(APIView):
 
         sheet2 = wb1['BoQ_Summary']
         start_row_sheet2 = 5  # Starting row for item data in sheet2
+        length_serilizer = len(serialized_items)
+        print("length_serilizer : ", length_serilizer)
         for index, item in enumerate(serialized_items):
             row = start_row_sheet2 + index
             sheet2[f'B{row}'] = item.get('category', 'N/A')
@@ -707,7 +719,7 @@ class GenerateXLS(APIView):
             sheet2[f'H{row}'] = 'progress %'  # Update progress percentage
             sheet2[f'I{row}'] =   '$ progress' #float(item.get('progress', 0)) * float(item.get('total', 0)) / 100  
             sheet2[f'J{row}'] = item.get('comment', '')  # Update notes if exists
-
+        
         sheet2['G9'] = 'total count'
         sheet2['H9'] = 'progress count'
         sheet2['I9'] = '$ progress count'
@@ -739,16 +751,16 @@ class GenerateXLS(APIView):
             sheet3[f'K{row}'] = 'total_value'
 
 
-        length_of_boq_summary = len(serialized_items)
+        
 
-        if length_of_boq_summary < 16:
-            selected_workbook = wb2
-        elif 15 <= length_of_boq_summary < 21:
-            selected_workbook = wb3
-        elif 20 <= length_of_boq_summary < 26:
-            selected_workbook = wb4
-        else:
-            selected_workbook = None 
+        # if length_of_boq_summary < 16:
+        #     selected_workbook = wb2
+        # # elif 15 <= length_of_boq_summary < 21:
+        # #     selected_workbook = wb3
+        # # elif 20 <= length_of_boq_summary < 26:
+        # #     selected_workbook = wb4
+        # # else:
+        # #     
 
         if selected_workbook:
             print(f"Selected workbook: {selected_workbook}")
