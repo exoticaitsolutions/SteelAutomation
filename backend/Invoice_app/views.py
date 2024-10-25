@@ -5,7 +5,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
-from steelautomation.settings import MEDIA_ROOT, MEDIA_URL
+from steelautomation.settings import BASE_DIR, MEDIA_ROOT, MEDIA_URL
 from .serializers import ChangePasswordSerializer, ContractSerializer, ForgetPasswordSerializer, InvoiceMethodSerializer, LoginSerializer, PaymentSerializer, ProjectSerializer, ScheduleSerializer, SignUpSerializer, UserSerializer
 from rest_framework import status
 from rest_framework.views import APIView
@@ -646,16 +646,25 @@ class GenerateXLS(APIView):
         # Load and update the Excel file
         length_of_boq_summary = len(serialized_items)
         
+        # file_path =  os.path.join(BASE_DIR, 'Invoice_app/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
+        # file_path =  os.path.join(BASE_DIR, 'Invoice_app/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
+        # file_path =  os.path.join(BASE_DIR, 'Invoice_app/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
+        # print("file_path ----: ", file_path)
+        
         # file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
         if length_of_boq_summary < 5:
-            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+            file_path =  os.path.join(BASE_DIR, 'xlsm_file_template/2. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
 
         elif 5 <= length_of_boq_summary < 21:
-            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/3. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+            file_path =  os.path.join(BASE_DIR, 'xlsm_file_template/3. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
         if length_of_boq_summary < 16:
-            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/4. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+            file_path =  os.path.join(BASE_DIR, 'xlsm_file_template/4. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
+
+            # file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/4. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
         else:
-            file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
+            file_path =  os.path.join(BASE_DIR, 'xlsm_file_template/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm')
+
+            # file_path = '/home/dell/Project-Steel Automation/SteelAutomation/backend/Invoice_app/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm'
 
         print("file path : ", file_path)
 
@@ -750,17 +759,6 @@ class GenerateXLS(APIView):
             sheet3[f'J{row}'] = 'RATE_value'
             sheet3[f'K{row}'] = 'total_value'
 
-
-        
-
-        # if length_of_boq_summary < 16:
-        #     selected_workbook = wb2
-        # # elif 15 <= length_of_boq_summary < 21:
-        # #     selected_workbook = wb3
-        # # elif 20 <= length_of_boq_summary < 26:
-        # #     selected_workbook = wb4
-        # # else:
-        # #     
 
         if selected_workbook:
             print(f"Selected workbook: {selected_workbook}")
