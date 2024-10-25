@@ -45,10 +45,11 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include('Invoice_app.urls')),  
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),  
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 

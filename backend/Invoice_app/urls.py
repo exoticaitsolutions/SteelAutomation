@@ -1,7 +1,7 @@
 from django.urls import path
 from Invoice_app.views import EntityListCreateAPIView, LoginView, EntityRetrieveUpdateDeleteAPIView
 from django.urls import path
-from .views import ChangePasswordAPIView, ClientListCreateAPIView, ClientRetrieveUpdateDeleteAPIView, ContractListCreateAPIView, ContractRetrieveUpdateDeleteAPIView, ForgetPasswordAPIView, GenerateInvoicePDF, InvoiceMethodListCreateAPIView, InvoiceMethodRetrieveUpdateDeleteAPIView, PaymentListCreateAPIView, PaymentRetrieveUpdateDeleteAPIView, ProjectListCreateAPIView, ProjectRetrieveUpdateDeleteAPIView, ScheduleListCreateAPIView, ScheduleRetrieveUpdateDeleteAPIView, SignUpView, serve_pdf
+from .views import ChangePasswordAPIView, ClientListCreateAPIView, ClientRetrieveUpdateDeleteAPIView, ContractListCreateAPIView, ContractRetrieveUpdateDeleteAPIView, ForgetPasswordAPIView, GenerateInvoicePDF, GenerateXLS, InvoiceMethodListCreateAPIView, InvoiceMethodRetrieveUpdateDeleteAPIView, PaymentListCreateAPIView, PaymentRetrieveUpdateDeleteAPIView, ProjectListCreateAPIView, ProjectRetrieveUpdateDeleteAPIView, ScheduleListCreateAPIView, ScheduleRetrieveUpdateDeleteAPIView, SignUpView, serve_pdf
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name='login'),
@@ -25,6 +25,5 @@ urlpatterns = [
     # path('generate_invoice_pdf/<int:payment_id>/', GenerateInvoicePDF.as_view(), name='generate_invoice_pdf'),
     path('generate_invoice_pdf/<int:payment_id>/', GenerateInvoicePDF.as_view(), name='generate_invoice_pdf'),
     path('pdf_files/<str:filename>/', serve_pdf, name='generated_invoice_pdf'),
-
-
+    path('generate_invoice_XLS/<int:payment_id>/', GenerateXLS.as_view(), name='generate_invoice_XLS'),
 ]
