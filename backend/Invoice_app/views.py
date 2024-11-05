@@ -586,8 +586,6 @@ class ExcelDataView(APIView):
             return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
 # class InvoiceMethodListCreateAPIView(generics.ListCreateAPIView):
 #     queryset = InvoiceMethod.objects.all()
 #     serializer_class = InvoiceMethodSerializer
