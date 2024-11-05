@@ -1,4 +1,8 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
 from Invoice_app.utils import UserManager
 from django.utils import formats
@@ -7,6 +11,7 @@ Role_CHOICES = [
     ("ADMIN", "Admin"),
     ("STAFF", "Staff"),
 ]
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True)
@@ -17,19 +22,19 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
         return self.username
-    
+
 
 class Entity(models.Model):
     entity_name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.entity_name
-    
+
 
 class Client(models.Model):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
@@ -39,7 +44,7 @@ class Client(models.Model):
 
     def __str__(self):
         return self.entity.entity_name
-    
+
 
 class Project(models.Model):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
@@ -49,7 +54,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.project_name
-    
+
 
 class Contract(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -57,7 +62,7 @@ class Contract(models.Model):
 
     def __str__(self):
         return f"Contract {self.contract_id} for {self.project}"
-    
+
 
 class Schedule(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
@@ -67,40 +72,93 @@ class Schedule(models.Model):
 
     def __str__(self):
         return f"Schedule {self.schedule_id} for {self.contract}"
-    
 
-class Payment(models.Model):    
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE, related_name='entitys')
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='payments')
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='clients')
+
+class Payment(models.Model):
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE, related_name="entitys")
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="payments"
+    )
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="clients")
     payment_category = models.CharField(max_length=255)
     payment_sent_date = models.DateField()
     payment_notice_back_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"Payment for {self.project.project_name} - {self.payment_category }"
-    
+
     def get_payment_sent_date(self):
-        return self.payment_sent_date.strftime('%d/%m/%Y')
+        return self.payment_sent_date.strftime("%d/%m/%Y")
 
     def get_payment_notice_back_date(self):
         if self.payment_notice_back_date:
-            return self.payment_notice_back_date.strftime('%d/%m/%Y')
+            return self.payment_notice_back_date.strftime("%d/%m/%Y")
         return None  # Or return an empty string or some default value
 
 
-class InvoiceMethod(models.Model):
-    payment = models.ForeignKey('Payment', on_delete=models.CASCADE, related_name='invoice_methods')
-    category = models.CharField(max_length=255)
-    zone = models.CharField(max_length=255, blank=True, null=True)
-    account_total = models.DecimalField(max_digits=10, decimal_places=2)
-    progress = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # e.g., 50.00 for 50%
-    interim = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    comment = models.TextField(blank=True, null=True)
-    
-    def __str__(self):
-        return f"Invoice Method for Payment {self.payment.id} - Category: {self.category}"
+# class InvoiceMethod(models.Model):
+#     payment = models.ForeignKey(
+#         "Payment", on_delete=models.CASCADE, related_name="invoice_methods"
+#     )
+#     category = models.CharField(max_length=255)
+#     zone = models.CharField(max_length=255, blank=True, null=True)
+#     account_total = models.DecimalField(max_digits=10, decimal_places=2)
+#     progress = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=0
+#     )  # e.g., 50.00 for 50%
+#     interim = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     comment = models.TextField(blank=True, null=True)
 
+#     def __str__(self):
+#         return (
+#             f"Invoice Method for Payment {self.payment.id} - Category: {self.category}"
+#         )
+
+
+class ItemCategory(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class ItemType(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class ItemZone(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class ItemUnit(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class PaymentBoQDetailed(models.Model):
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    item = models.ForeignKey(ItemUnit, on_delete=models.CASCADE)
+    category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE)
+    type = models.ForeignKey(ItemType, on_delete=models.CASCADE)
+    zone = models.ForeignKey(ItemZone, on_delete=models.CASCADE)
+    acw = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    pcs = models.IntegerField(default=0)
+    qty = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    unit = models.CharField(max_length=50)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Example to store rate as a Decimal
+    total = models.DecimalField(max_digits=15, decimal_places=5, default=0)
+
+    def __str__(self):
+        return f"PaymentBoQDetailed ({self.payment})"
+    
 
 class EmailReminder(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
@@ -110,7 +168,7 @@ class EmailReminder(models.Model):
     def __str__(self):
         return f"Reminder {self.reminder_id} for Payment {self.payment}"
 
-    
+
 class UserProjectMap(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
