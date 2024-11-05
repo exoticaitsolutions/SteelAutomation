@@ -210,10 +210,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
 #         model = Payment   
 #         fields = "__all__"
 
-class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentBoQDetailed   
-        fields = "__all__"
+# class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PaymentBoQDetailed   
+#         fields = "__all__"
 
 
 class ItemCategorySerializer(serializers.ModelSerializer):
@@ -236,92 +236,170 @@ class ItemUnitSerializer(serializers.ModelSerializer):
         model = ItemUnit
         fields = ['id', 'name']
 
+# class PaymentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Payment
+#         fields = [
+#             "id",
+#             "entity",
+#             "project",
+#             "client",
+#             "payment_category",
+#             "payment_sent_date",
+#             "payment_notice_back_date",
+#         ]
+#     print("=-------------------PaymentSerializer")
+
+#     def create(self, validated_data):
+#         print("-------------------create----------")
+#         # Ensure 'invoice_methods' is a list of dictionaries
+#         invoice_methods_data = self.context["request"].data.get("Payment_BoQDetailed", [])
+#         print("invoice_methods_data -------------------------", invoice_methods_data)
+#         if not isinstance(invoice_methods_data, list):
+#             print("invoice_methods_data -------------------------")
+#             invoice_methods_data = []
+#         print("invoice_methods_data: ", invoice_methods_data)
+#         payment = Payment.objects.create(**validated_data)
+#         print("payment -------------------------")
+
+#         # Create multiple InvoiceMethod entries
+#         for invoice_data in invoice_methods_data:
+#             print("---------"*8)
+#             print("invoice_data : ", invoice_data)
+#             print("---------"*8)
+#             PaymentBoQDetailedSerializer.objects.create(payment=payment, **invoice_data)
+
+#         return payment
+
+#     def update(self, instance, validated_data):
+#         # Ensure 'invoice_methods' is a list of dictionaries
+#         invoice_methods_data = self.context["request"].data.get("Payment_BoQDetailed", [])
+#         if not isinstance(invoice_methods_data, list):
+#             invoice_methods_data = [] 
+
+#         # Update Payment fields
+#         for attr, value in validated_data.items():
+#             setattr(instance, attr, value)
+#         instance.save()
+
+#         # Update InvoiceMethods
+#         existing_invoice_ids = [
+#             item["id"] for item in invoice_methods_data if "id" in item
+#         ]
+#         PaymentBoQDetailed.objects.filter(payment=instance).exclude(
+#             id__in=existing_invoice_ids
+#         ).delete()
+
+#         for invoice_data in invoice_methods_data:
+#             invoice_id = invoice_data.get("id")
+#             if invoice_id:
+#                 invoice = PaymentBoQDetailed.objects.get(id=invoice_id, payment=instance)
+#                 for attr, value in invoice_data.items():
+#                     setattr(invoice, attr, value)
+#                 invoice.save()
+#             else:
+#                 PaymentBoQDetailed.objects.create(payment=instance, **invoice_data)
+
+#         return instance
+
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
+
+#         representation["entity"] = model_to_dict(
+#             instance.entity,
+#             fields=[field.name for field in instance.entity._meta.fields],
+#         )
+#         representation["project"] = model_to_dict(
+#             instance.project,
+#             fields=[field.name for field in instance.project._meta.fields],
+#         )
+#         representation["client"] = model_to_dict(
+#             instance.client,
+#             fields=[field.name for field in instance.client._meta.fields],
+#         )
+
+#         # Manually add invoice_methods using InvoiceMethodSerializer
+#         invoice_methods = PaymentBoQDetailed.objects.filter(payment=instance)
+#         representation["Payment_BoQDetailed"] = PaymentBoQDetailedSerializer(
+#             invoice_methods, many=True
+#         ).data
+
+#         return representation
+
+
+
+from rest_framework import serializers
+from .models import Payment, PaymentBoQDetailed
+
+class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentBoQDetailed
+        fields = [
+            'id', 'acw', 'pcs', 'qty', 'unit', 'rate', 'total',
+            'item', 'category', 'type', 'zone'
+        ]
+
 class PaymentSerializer(serializers.ModelSerializer):
+    Payment_BoQDetailed = PaymentBoQDetailedSerializer(many=True, source='boq_detailed')
+
     class Meta:
         model = Payment
         fields = [
-            "id",
-            "entity",
-            "project",
-            "client",
-            "payment_category",
-            "payment_sent_date",
-            "payment_notice_back_date",
+            'id',
+            'entity',
+            'project',
+            'client',
+            'payment_category',
+            'payment_sent_date',
+            'payment_notice_back_date',
+            'Payment_BoQDetailed',
         ]
-    print("=-------------------PaymentSerializer")
 
     def create(self, validated_data):
-        print("-------------------create----------")
-        # Ensure 'invoice_methods' is a list of dictionaries
-        invoice_methods_data = self.context["request"].data.get("invoice_methods", [])
-        print("invoice_methods_data -------------------------", invoice_methods_data)
-        if not isinstance(invoice_methods_data, list):
-            print("invoice_methods_data -------------------------")
-            invoice_methods_data = []
-        print("invoice_methods_data: ", invoice_methods_data)
-        payment = Payment.objects.create(**validated_data)
-        print("payment -------------------------")
+        # Extract nested PaymentBoQDetailed data
+        payment_boq_detailed_data = validated_data.pop('boq_detailed', [])
 
-        # Create multiple InvoiceMethod entries
-        for invoice_data in invoice_methods_data:
-            print("---------"*8)
-            print("invoice_data : ", invoice_data)
-            print("---------"*8)
-            PaymentBoQDetailedSerializer.objects.create(payment=payment, **invoice_data)
+        # Create the Payment instance
+        payment = Payment.objects.create(**validated_data)
+
+        # Create nested PaymentBoQDetailed instances
+        for boq_data in payment_boq_detailed_data:
+            # Create each PaymentBoQDetailed instance linked to the created payment
+            PaymentBoQDetailed.objects.create(payment=payment, **boq_data)
 
         return payment
 
-    def update(self, instance, validated_data):
-        # Ensure 'invoice_methods' is a list of dictionaries
-        invoice_methods_data = self.context["request"].data.get("invoice_methods", [])
-        if not isinstance(invoice_methods_data, list):
-            invoice_methods_data = [] 
 
-        # Update Payment fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
 
-        # Update InvoiceMethods
-        existing_invoice_ids = [
-            item["id"] for item in invoice_methods_data if "id" in item
-        ]
-        PaymentBoQDetailed.objects.filter(payment=instance).exclude(
-            id__in=existing_invoice_ids
-        ).delete()
-
-        for invoice_data in invoice_methods_data:
-            invoice_id = invoice_data.get("id")
-            if invoice_id:
-                invoice = PaymentBoQDetailed.objects.get(id=invoice_id, payment=instance)
-                for attr, value in invoice_data.items():
-                    setattr(invoice, attr, value)
-                invoice.save()
-            else:
-                PaymentBoQDetailed.objects.create(payment=instance, **invoice_data)
-
-        return instance
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
 
-        representation["entity"] = model_to_dict(
-            instance.entity,
-            fields=[field.name for field in instance.entity._meta.fields],
-        )
-        representation["project"] = model_to_dict(
-            instance.project,
-            fields=[field.name for field in instance.project._meta.fields],
-        )
-        representation["client"] = model_to_dict(
-            instance.client,
-            fields=[field.name for field in instance.client._meta.fields],
-        )
+        # Populate related fields
+        representation['entity'] = {
+            'id': instance.entity.id,
+            'entity_name': instance.entity.entity_name
+        }
 
-        # Manually add invoice_methods using InvoiceMethodSerializer
-        invoice_methods = PaymentBoQDetailed.objects.filter(payment=instance)
-        representation["Payment_BoQDetailed"] = PaymentBoQDetailedSerializer(
-            invoice_methods, many=True
+        representation['project'] = {
+            'id': instance.project.id,
+            'entity': instance.project.entity.id,
+            'client': instance.project.client.id,
+            'project_name': instance.project.project_name,
+            'description': instance.project.description,
+        }
+
+        representation['client'] = {
+            'id': instance.client.id,
+            'entity': instance.client.entity.id,
+            'client_name': instance.client.client_name,
+            'email': instance.client.email,
+            'address': instance.client.address,
+        }
+
+        # Access the related objects using the correct related_name
+        representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
+            instance.boq_detailed.all(), many=True
         ).data
 
         return representation

@@ -144,7 +144,7 @@ class ItemUnit(models.Model):
     
 
 class PaymentBoQDetailed(models.Model):
-    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='boq_detailed')  # Adding related_name
     item = models.ForeignKey(ItemUnit, on_delete=models.CASCADE)
     category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE)
     type = models.ForeignKey(ItemType, on_delete=models.CASCADE)
@@ -153,8 +153,9 @@ class PaymentBoQDetailed(models.Model):
     pcs = models.IntegerField(default=0)
     qty = models.DecimalField(max_digits=10, decimal_places=5, default=0)
     unit = models.CharField(max_length=50)
-    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Example to store rate as a Decimal
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=15, decimal_places=5, default=0)
+
 
     def __str__(self):
         return f"PaymentBoQDetailed ({self.payment})"
