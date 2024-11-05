@@ -1,4 +1,5 @@
 from datetime import date
+import os
 from django.forms import model_to_dict
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
@@ -7,6 +8,8 @@ from Invoice_app.models import User, Entity, Client
 from django.contrib.auth.backends import ModelBackend
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+
+from steelautomation import settings
 from .models import *
 
 
@@ -236,6 +239,95 @@ class ItemUnitSerializer(serializers.ModelSerializer):
         model = ItemUnit
         fields = ['id', 'name']
 
+
+class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentBoQDetailed
+        fields = [
+            'id', 'acw', 'pcs', 'qty', 'unit', 'rate', 'total',
+            'item', 'category', 'type', 'zone'
+        ]
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    Payment_BoQDetailed = PaymentBoQDetailedSerializer(many=True, source='boq_detailed')
+
+    class Meta:
+        model = Payment
+        fields = [
+            'id',
+            'entity',
+            'project',
+            'client',
+            'payment_category',
+            'payment_sent_date',
+            'payment_notice_back_date',
+            'Payment_BoQDetailed',
+        ]
+
+    def create(self, validated_data):
+        # Extract nested PaymentBoQDetailed data
+        payment_boq_detailed_data = validated_data.pop('boq_detailed', [])
+
+        # Create the Payment instance
+        payment = Payment.objects.create(**validated_data)
+
+        # Create nested PaymentBoQDetailed instances
+        for boq_data in payment_boq_detailed_data:
+            # Create each PaymentBoQDetailed instance linked to the created payment
+            PaymentBoQDetailed.objects.create(payment=payment, **boq_data)
+
+        return payment
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        # Populate related fields
+        representation['entity'] = {
+            'id': instance.entity.id,
+            'entity_name': instance.entity.entity_name
+        }
+
+        representation['project'] = {
+            'id': instance.project.id,
+            'entity': instance.project.entity.id,
+            'client': instance.project.client.id,
+            'project_name': instance.project.project_name,
+            'description': instance.project.description,
+        }
+
+        representation['client'] = {
+            'id': instance.client.id,
+            'entity': instance.client.entity.id,
+            'client_name': instance.client.client_name,
+            'email': instance.client.email,
+            'address': instance.client.address,
+        }
+
+        # Access the related objects using the correct related_name
+        representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
+            instance.boq_detailed.all(), many=True
+        ).data
+
+        return representation
+    
+
+class FileUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def create(self, validated_data):
+        uploaded_file = validated_data['file']
+        print("-----------------"*8)
+        print("uploaded_file v: ", uploaded_file)
+        print("-----------------"*8)
+        
+        # Perform any processing or saving with `uploaded_file` if needed
+        
+        # Return metadata instead of the file itself
+        return {'file_name': uploaded_file.name, 'file_size': uploaded_file.size}
+
+
 # class PaymentSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Payment
@@ -325,81 +417,3 @@ class ItemUnitSerializer(serializers.ModelSerializer):
 #         ).data
 
 #         return representation
-
-
-
-from rest_framework import serializers
-from .models import Payment, PaymentBoQDetailed
-
-class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentBoQDetailed
-        fields = [
-            'id', 'acw', 'pcs', 'qty', 'unit', 'rate', 'total',
-            'item', 'category', 'type', 'zone'
-        ]
-
-class PaymentSerializer(serializers.ModelSerializer):
-    Payment_BoQDetailed = PaymentBoQDetailedSerializer(many=True, source='boq_detailed')
-
-    class Meta:
-        model = Payment
-        fields = [
-            'id',
-            'entity',
-            'project',
-            'client',
-            'payment_category',
-            'payment_sent_date',
-            'payment_notice_back_date',
-            'Payment_BoQDetailed',
-        ]
-
-    def create(self, validated_data):
-        # Extract nested PaymentBoQDetailed data
-        payment_boq_detailed_data = validated_data.pop('boq_detailed', [])
-
-        # Create the Payment instance
-        payment = Payment.objects.create(**validated_data)
-
-        # Create nested PaymentBoQDetailed instances
-        for boq_data in payment_boq_detailed_data:
-            # Create each PaymentBoQDetailed instance linked to the created payment
-            PaymentBoQDetailed.objects.create(payment=payment, **boq_data)
-
-        return payment
-
-
-
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-
-        # Populate related fields
-        representation['entity'] = {
-            'id': instance.entity.id,
-            'entity_name': instance.entity.entity_name
-        }
-
-        representation['project'] = {
-            'id': instance.project.id,
-            'entity': instance.project.entity.id,
-            'client': instance.project.client.id,
-            'project_name': instance.project.project_name,
-            'description': instance.project.description,
-        }
-
-        representation['client'] = {
-            'id': instance.client.id,
-            'entity': instance.client.entity.id,
-            'client_name': instance.client.client_name,
-            'email': instance.client.email,
-            'address': instance.client.address,
-        }
-
-        # Access the related objects using the correct related_name
-        representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
-            instance.boq_detailed.all(), many=True
-        ).data
-
-        return representation

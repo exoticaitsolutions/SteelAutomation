@@ -24,7 +24,11 @@ from .models import Payment
 import openpyxl
 from rest_framework import viewsets
 import pandas as pd 
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
+from .serializers import FileUploadSerializer
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -556,14 +560,38 @@ class PaymentBoQDetailedListCreateAPIView(generics.ListCreateAPIView):
     
 
 class ExcelDataView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    uploaded_file_path = None  # Class attribute to store the file path
+
+    def post(self, request, *args, **kwargs):
+        serializer = FileUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            # Get the uploaded file
+            uploaded_file = serializer.validated_data['file']
+
+            # Define the directory and file path
+            upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+            os.makedirs(upload_dir, exist_ok=True)  # Create the 'uploads' directory if it doesn't exist
+            
+            file_path = os.path.join(upload_dir, uploaded_file.name)
+            
+            # Save the file to the server
+            with open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+
+            # Store the file path in a class attribute for access in the get method
+            ExcelDataView.uploaded_file_path = file_path
+            
+            return Response({"message": "File uploaded successfully", "file_path": file_path}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def get(self, request, *args, **kwargs):
-        # Path to the Excel file
-        # file_path = r"C:\Users\home\Videos\Komal Work\xlsm\1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
-        file_path = os.path.join(
-                BASE_DIR,
-                "xlsm_file_template/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm",
-            )
-        
+        # Check if a file was uploaded previously
+        file_path = ExcelDataView.uploaded_file_path
+        if not file_path or not os.path.exists(file_path):
+            return Response({"error": "File not found or not uploaded yet"}, status=status.HTTP_404_NOT_FOUND)
+
         try:
             # Load the specific sheet into a pandas DataFrame
             df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
@@ -584,6 +612,49 @@ class ExcelDataView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# class ExcelDataView(APIView):
+#     parser_classes = [MultiPartParser, FormParser]
+        
+#     def post(self, request, *args, **kwargs):
+#         serializer = FileUploadSerializer(data=request.data)
+#         if serializer.is_valid():
+#             # Save or process the file and return its metadata
+#             file_data = serializer.save()
+#             return Response(file_data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+#     def get(self, request, *args, **kwargs):
+#         # Path to the Excel file
+#         # file_path = r"C:\Users\home\Videos\Komal Work\xlsm\1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm"
+#         file_path = os.path.join(
+#                 BASE_DIR,
+#                 "xlsm_file_template/1. Doncaster Unit 02 & 03_AFP_SEPT 24.xlsm",
+#             )
+        
+#         try:
+#             # Load the specific sheet into a pandas DataFrame
+#             df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
+            
+#             # Remove columns with "Unnamed" and drop rows that are entirely empty
+#             df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+#             df.dropna(how='all', inplace=True)
+            
+#             # Convert the DataFrame to JSON
+#             json_data = df.to_json(orient='records')
+            
+#             # Return JSON data as response
+#             return Response(json_data, status=status.HTTP_200_OK)
+        
+#         except FileNotFoundError:
+#             return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+#         except ValueError as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # class InvoiceMethodListCreateAPIView(generics.ListCreateAPIView):

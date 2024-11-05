@@ -96,25 +96,6 @@ class Payment(models.Model):
         return None  # Or return an empty string or some default value
 
 
-# class InvoiceMethod(models.Model):
-#     payment = models.ForeignKey(
-#         "Payment", on_delete=models.CASCADE, related_name="invoice_methods"
-#     )
-#     category = models.CharField(max_length=255)
-#     zone = models.CharField(max_length=255, blank=True, null=True)
-#     account_total = models.DecimalField(max_digits=10, decimal_places=2)
-#     progress = models.DecimalField(
-#         max_digits=5, decimal_places=2, default=0
-#     )  # e.g., 50.00 for 50%
-#     interim = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-#     comment = models.TextField(blank=True, null=True)
-
-#     def __str__(self):
-#         return (
-#             f"Invoice Method for Payment {self.payment.id} - Category: {self.category}"
-#         )
-
-
 class ItemCategory(models.Model):
     name = models.CharField(max_length=255)
 
@@ -177,3 +158,24 @@ class UserProjectMap(models.Model):
 
     def __str__(self):
         return f"{self.user} access to {self.project} - Level: {self.access_level}"
+
+
+
+
+# class InvoiceMethod(models.Model):
+#     payment = models.ForeignKey(
+#         "Payment", on_delete=models.CASCADE, related_name="invoice_methods"
+#     )
+#     category = models.CharField(max_length=255)
+#     zone = models.CharField(max_length=255, blank=True, null=True)
+#     account_total = models.DecimalField(max_digits=10, decimal_places=2)
+#     progress = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=0
+#     )  # e.g., 50.00 for 50%
+#     interim = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     comment = models.TextField(blank=True, null=True)
+
+#     def __str__(self):
+#         return (
+#             f"Invoice Method for Payment {self.payment.id} - Category: {self.category}"
+#         )
