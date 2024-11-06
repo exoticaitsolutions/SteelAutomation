@@ -1,3 +1,4 @@
+import json
 import os
 import openpyxl
 from rest_framework import generics
@@ -559,8 +560,6 @@ class PaymentBoQDetailedListCreateAPIView(generics.ListCreateAPIView):
         )
     
 
-import json
-
 class ExcelDataView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     uploaded_file_path = None  # Class attribute to store the file path
@@ -575,9 +574,8 @@ class ExcelDataView(APIView):
                 # Define the directory and file path
                 upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
                 os.makedirs(upload_dir, exist_ok=True)  # Create the 'uploads' directory if it doesn't exist
-                
                 file_path = os.path.join(upload_dir, uploaded_file.name)
-                
+
                 # Save the file to the server
                 with open(file_path, 'wb+') as destination:
                     for chunk in uploaded_file.chunks():
@@ -585,16 +583,32 @@ class ExcelDataView(APIView):
 
                 # Store the file path in a class attribute for access in the get method
                 ExcelDataView.uploaded_file_path = file_path
-                
+
                 # Read and process the Excel file
                 df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
                 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
                 df.dropna(how='all', inplace=True)
-                
+
+                # Filter out rows where specific columns are null
+                required_columns = ['Cat', 'Type', 'Zone', 'Unit']
+                df = df.dropna(subset=required_columns, how='any')  # Drop rows with null values in required columns
+
                 # Convert the DataFrame to JSON and parse it for correct format
                 json_data = df.to_json(orient='records')
-                json_data_parsed = json.loads(json_data)  # Parse the JSON string to ensure correct formatting
-                
+                json_data_parsed = json.loads(json_data)
+
+                # Replace 'Cat', 'Type', 'Zone', 'Unit' values with IDs from database
+                item_category_map = {name: id for id, name in ItemCategory.objects.values_list('id', 'name')}
+                item_type_map = {name: id for id, name in ItemType.objects.values_list('id', 'name')}
+                item_zone_map = {name: id for id, name in ItemZone.objects.values_list('id', 'name')}
+                item_unit_map = {name: id for id, name in ItemUnit.objects.values_list('id', 'name')}
+
+                for data in json_data_parsed:
+                    data['Cat'] = item_category_map.get(data['Cat'], None)
+                    data['Type'] = item_type_map.get(data['Type'], None)
+                    data['Zone'] = item_zone_map.get(data['Zone'], None)
+                    data['Unit'] = item_unit_map.get(data['Unit'], None)
+
                 return Response({"message": "File uploaded successfully", "data": json_data_parsed}, status=status.HTTP_201_CREATED)
 
             except FileNotFoundError:
@@ -605,7 +619,6 @@ class ExcelDataView(APIView):
                 return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 

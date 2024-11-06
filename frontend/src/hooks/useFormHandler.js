@@ -12,7 +12,7 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
   const [zones, setZones] = useState([]); 
   const [types, setTypes] = useState([]); 
   const [categories, setCategories] = useState([]); 
-  const [items, setItems] = useState([]); 
+  const [units, setUnits] = useState([]); 
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -109,22 +109,22 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
   }, [token, apiUrls.categoryUrl]);
 
   useEffect(() => {
-    const fetchItemss = async () => {
-      if (!apiUrls.itemsUrl) return; 
+    const fetchUnits = async () => {
+      if (!apiUrls.unitsUrl) return; 
 
       try {
-        const response = await axios.get(apiUrls.itemsUrl, {
+        const response = await axios.get(apiUrls.unitsUrl, {
           headers: { Authorization: `Token ${token}` },
         });
-        setItems(response.data);
+        setUnits(response.data);
       } catch (error) {
-        console.error('Error fetching items:', error);
-        toast.error('Error fetching items');
+        console.error('Error fetching Units:', error);
+        toast.error('Error fetching Units');
       }
     };
 
-    fetchItemss();
-  }, [token, apiUrls.itemsUrl]);
+    fetchUnits();
+  }, [token, apiUrls.unitsUrl]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -168,6 +168,7 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     }));
   };
 
+  
 
   const handleSubmitBoth = async (e, extraFields) => {
     e.preventDefault();
@@ -231,12 +232,10 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     entities,
     clients,
     projects,
-
     zones,
     types,
     categories,
-    items,
-    
+    units,
     isEditing,
     handleInputChange,
     handleSubmitBoth,

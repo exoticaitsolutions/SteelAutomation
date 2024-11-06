@@ -1,10 +1,14 @@
 import "../App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useFormHandler from '../hooks/useFormHandler';
 import Topbar from "../components/Topbar";
 import axios from "axios";
+
+import DownloadIcon from '@mui/icons-material/Download';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 
 function PaymentProcessing() {
     const token = localStorage.getItem("userToken");
@@ -30,12 +34,13 @@ function PaymentProcessing() {
         zonesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-zones/`,
         typesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-types/`,
         categoriesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-categories/`,
-        itemsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-units/`,
+        unitsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-units/`,
+        excelsheetUrl: `${process.env.REACT_APP_API_BASE_URL}/api/excel-data/`,
         redirectUrl: '/dashboard/payment_processing',
     };
 
     const [extraFields, setExtraFields] = useState([{
-        ref:'',
+        ref: '',
         acw: '',
         pcs: '',
         qty: '',
@@ -47,54 +52,54 @@ function PaymentProcessing() {
         type: '',
         zone: '',
     }]);
-    const { formValues, entities, projects, clients, zones, types, categories, items, handleInputChange, handleSubmitBoth } = useFormHandler(initialValues, apiUrls, token, navigate, location);
+    const { formValues, entities, projects, clients, zones, types, categories, units, handleInputChange, handleSubmitBoth } = useFormHandler(initialValues, apiUrls, token, navigate, location);
 
     const handleFileChange = (event) => {
         console.log("File change click success");
         const file = event.target.files[0];
         if (!file) return;
-    
+
         const formData = new FormData();
-        formData.append("file", file); 
-    
+        formData.append("file", file);
+
         console.log("Sending file to server...");
-        axios.post('http://127.0.0.1:8000/api/excel-data/', formData, {
+        axios.post(apiUrls.excelsheetUrl, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
                 Authorization: `Bearer ${token}`,
             },
         })
-        .then(response => {
-            console.log("Upload Success:", response.data); 
-            const data = response.data.data;  
-            
-            if (Array.isArray(data)) {
-                // Map the data and set it to the state
-                setExtraFields(data.map((item, index) => ({
-                    ref: (index + 1).toString(),
-                    acw: item.ACW || '',
-                    pcs: item.Pcs || '',
-                    qty: item.QTY || '',
-                    unit: item.Unit || '',
-                    rate: item["Rate "] || '',  // Ensure spaces in keys are preserved correctly
-                    total: item["Total "] || '',  // Ensure spaces in keys are preserved correctly
-                    item: item.Item || '',
-                    category: item.Cat || '',
-                    type: item.Type || '',
-                    zone: item.Zone || '',
-                })));
-            } else {
-                console.error("Expected 'data' to be an array, but got:", data);
-            }
-        })
-        .catch(error => {
-            console.error("Upload Error:", error);
-        });
+            .then(response => {
+                console.log("Upload Success:", response.data);
+                const data = response.data.data;
+
+                if (Array.isArray(data)) {
+
+                    setExtraFields(data.map((item, index) => ({
+                        ref: (index + 1).toString(),
+                        acw: item.ACW || '',
+                        pcs: item.Pcs || '',
+                        qty: item.QTY || '',
+                        item: item.Item || '',
+                        rate: item["Rate "] || '',
+                        total: item["Total "] || '',
+                        unit: item.Unit || '',
+                        category: item.Cat || '',
+                        type: item.Type || '',
+                        zone: item.Zone || '',
+                    })));
+                } else {
+                    console.error("Expected 'data' to be an array, but got:", data);
+                }
+            })
+            .catch(error => {
+                console.error("Upload Error:", error);
+            });
     };
-    
+
 
     const addFields = () => {
-        setExtraFields([...extraFields, {ref:'', acw: '', pcs: '', qty: '', unit: '', rate: '', total: '', item: '', category: '', type: '', zone: '' }]);
+        setExtraFields([...extraFields, { ref: '', acw: '', pcs: '', qty: '', unit: '', rate: '', total: '', item: '', category: '', type: '', zone: '' }]);
     };
 
 
@@ -102,7 +107,6 @@ function PaymentProcessing() {
         const newFields = extraFields.filter((_, i) => i !== index);
         setExtraFields(newFields);
     };
-
 
     return (
         <div className="container">
@@ -116,15 +120,7 @@ function PaymentProcessing() {
                                 <div className="fields_main">
                                     <div className="table-heading">
                                         <h2>Payment Processing</h2>
-                                        <button onClick={() => document.getElementById("fileInput").click()}>Upload File</button>
 
-                                        {/* Hidden file input */}
-                                        <input
-                                            type="file"
-                                            id="fileInput"
-                                            style={{ display: "none" }}
-                                            onChange={handleFileChange}
-                                        />
                                     </div>
                                     <div className="sec_field">
                                         <label>Entity :</label>
@@ -217,6 +213,15 @@ function PaymentProcessing() {
 
                                 <div>
                                     <div className="table-container">
+                                    <div className="addmore_btn">
+                                        <button className="btn"  onClick={() => document.getElementById("fileInput").click()}>Import File <DownloadIcon/></button>
+                                       </div>
+                                        <input
+                                            type="file"
+                                            id="fileInput"
+                                            style={{ display: "none" }}
+                                            onChange={handleFileChange}
+                                        />
                                         <table >
                                             <thead>
                                                 <tr>
@@ -226,7 +231,7 @@ function PaymentProcessing() {
                                                     <th>Type</th>
                                                     <th>Zone</th>
                                                     <th>Acw</th>
-                                                    <th>PCS</th>
+                                                    <th>Pcs</th>
                                                     <th>Quantity</th>
                                                     <th>Unit</th>
                                                     <th>Rate</th>
@@ -252,10 +257,9 @@ function PaymentProcessing() {
                                                             />
                                                         </td>
 
-                      
-
                                                         <td>
-                                                            <select
+                                                            <input
+                                                                type="text"
                                                                 name={`item_${index}`}
                                                                 value={field.item}
                                                                 onChange={(e) => {
@@ -263,20 +267,11 @@ function PaymentProcessing() {
                                                                     newFields[index].item = e.target.value;
                                                                     setExtraFields(newFields);
                                                                 }}
-                                                                required
-                                                            >
-                                                                <option value="">Select Item</option>
-                                                                {items.length > 0 ? (
-                                                                    items.map((item) => (
-                                                                        <option key={item.id} value={item.id}>
-                                                                            {item.name}
-                                                                        </option>
-                                                                    ))
-                                                                ) : (
-                                                                    <option disabled>No items available</option>
-                                                                )}
-                                                            </select>
+                                                                placeholder="item"
+                                                            />
                                                         </td>
+
+
                                                         <td>
                                                             <select
                                                                 name={`category_${index}`}
@@ -385,9 +380,10 @@ function PaymentProcessing() {
                                                                 placeholder="Quantity"
                                                             />
                                                         </td>
+
+
                                                         <td>
-                                                            <input
-                                                                type="text"
+                                                            <select
                                                                 name={`unit_${index}`}
                                                                 value={field.unit}
                                                                 onChange={(e) => {
@@ -395,8 +391,19 @@ function PaymentProcessing() {
                                                                     newFields[index].unit = e.target.value;
                                                                     setExtraFields(newFields);
                                                                 }}
-                                                                placeholder="Unit"
-                                                            />
+                                                                required
+                                                            >
+                                                                <option value="">Select Item</option>
+                                                                {units.length > 0 ? (
+                                                                    units.map((unit) => (
+                                                                        <option key={unit.id} value={unit.id}>
+                                                                            {unit.name}
+                                                                        </option>
+                                                                    ))
+                                                                ) : (
+                                                                    <option disabled>No units available</option>
+                                                                )}
+                                                            </select>
                                                         </td>
                                                         <td>
                                                             <input
@@ -425,25 +432,16 @@ function PaymentProcessing() {
                                                             />
                                                         </td>
 
-
-  
-
-
-
-  
                                                         <td>
-                                                            <button type="button" onClick={() => removeFields(index)}><i className="fas fa-calendar" /></button>
+                                                            <button type="button" onClick={() => removeFields(index)}><RemoveIcon /></button>
+                                                            <button type="button"  onClick={addFields}><AddIcon/></button>
                                                         </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     </div>
-
-                                </div>
-
-                                <div className="addmore_btn">
-                                    <button type="button" className="btn" onClick={addFields}>Add Fields</button>
+                                    
                                 </div>
                                 <div className="submit_btn">
                                     <input className="form_submit" type="submit" value="Send" />

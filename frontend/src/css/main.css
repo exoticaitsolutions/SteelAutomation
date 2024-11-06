@@ -243,14 +243,12 @@ select :focus {
   outline: none;
   padding: 4px 15px;
   transition: transform 1s;
-  background-color: darkgray;
+  background-color: rgb(117, 169, 236);
   color: #111010;
 }
 
 .submit_btn {
   text-align: center;
-  display: flex;
-  gap: 5%;
 }
 
 
@@ -344,7 +342,7 @@ a:hover {
   bottom: 0;
 }
 .addmore_btn{
-  width: 10%;
+  width: 13%;
   margin-left: auto;
 }
 .btn {
