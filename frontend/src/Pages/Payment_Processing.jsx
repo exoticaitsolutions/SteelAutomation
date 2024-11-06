@@ -1,9 +1,10 @@
 import "../App.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useFormHandler from '../hooks/useFormHandler';
 import Topbar from "../components/Topbar";
+import axios from "axios";
 
 function PaymentProcessing() {
     const token = localStorage.getItem("userToken");
@@ -26,22 +27,74 @@ function PaymentProcessing() {
         entityUrl: `${process.env.REACT_APP_API_BASE_URL}/api/entities/`,
         clientsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/clients/`,
         projectsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/projects/`,
+        zonesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-zones/`,
+        typesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-types/`,
+        categoriesUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-categories/`,
+        itemsUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-units/`,
         redirectUrl: '/dashboard/payment_processing',
     };
 
-
     const [extraFields, setExtraFields] = useState([{
-        status: '',
-        claimingValue: '',
-        contractorValue: '',
-        finalValue: '',
-        interimPayment: '',
-        comment: ''
+        ref:'',
+        acw: '',
+        pcs: '',
+        qty: '',
+        unit: '',
+        rate: '',
+        total: '',
+        item: '',
+        category: '',
+        type: '',
+        zone: '',
     }]);
+    const { formValues, entities, projects, clients, zones, types, categories, items, handleInputChange, handleSubmitBoth } = useFormHandler(initialValues, apiUrls, token, navigate, location);
 
+    const handleFileChange = (event) => {
+        console.log("File change click success");
+        const file = event.target.files[0];
+        if (!file) return;
+    
+        const formData = new FormData();
+        formData.append("file", file); 
+    
+        console.log("Sending file to server...");
+        axios.post('http://127.0.0.1:8000/api/excel-data/', formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${token}`,
+            },
+        })
+        .then(response => {
+            console.log("Upload Success:", response.data); 
+            const data = response.data.data;  
+            
+            if (Array.isArray(data)) {
+                // Map the data and set it to the state
+                setExtraFields(data.map((item, index) => ({
+                    ref: (index + 1).toString(),
+                    acw: item.ACW || '',
+                    pcs: item.Pcs || '',
+                    qty: item.QTY || '',
+                    unit: item.Unit || '',
+                    rate: item["Rate "] || '',  // Ensure spaces in keys are preserved correctly
+                    total: item["Total "] || '',  // Ensure spaces in keys are preserved correctly
+                    item: item.Item || '',
+                    category: item.Cat || '',
+                    type: item.Type || '',
+                    zone: item.Zone || '',
+                })));
+            } else {
+                console.error("Expected 'data' to be an array, but got:", data);
+            }
+        })
+        .catch(error => {
+            console.error("Upload Error:", error);
+        });
+    };
+    
 
     const addFields = () => {
-        setExtraFields([...extraFields, { status: "", claimingValue: "", contractorValue: "", finalValue: "", interimPayment: "", comment: "" }]);
+        setExtraFields([...extraFields, {ref:'', acw: '', pcs: '', qty: '', unit: '', rate: '', total: '', item: '', category: '', type: '', zone: '' }]);
     };
 
 
@@ -50,7 +103,6 @@ function PaymentProcessing() {
         setExtraFields(newFields);
     };
 
-    const { formValues, entities, projects, clients, handleInputChange, handleSubmitBoth } = useFormHandler(initialValues, apiUrls, token, navigate, location);
 
     return (
         <div className="container">
@@ -64,6 +116,15 @@ function PaymentProcessing() {
                                 <div className="fields_main">
                                     <div className="table-heading">
                                         <h2>Payment Processing</h2>
+                                        <button onClick={() => document.getElementById("fileInput").click()}>Upload File</button>
+
+                                        {/* Hidden file input */}
+                                        <input
+                                            type="file"
+                                            id="fileInput"
+                                            style={{ display: "none" }}
+                                            onChange={handleFileChange}
+                                        />
                                     </div>
                                     <div className="sec_field">
                                         <label>Entity :</label>
@@ -154,104 +215,238 @@ function PaymentProcessing() {
                                     </div>
                                 </div>
 
-                                {extraFields.map((field, index) => (
-                                    <div className="fields_main" key={index}>
-                                        <div className="add-heading">
-                                            <h3>Payment Details</h3>
-                                            <button type="button" className="btn" onClick={() => removeFields(index)}>Remove</button>
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Category:</label>
-                                            <input
-                                                type="text"
-                                                name={`status_${index}`}
-                                                value={field.status}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].status = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Status"
-                                            />
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Zone:</label>
-                                            <input
-                                                type="text"
-                                                name={`claimingValue_${index}`}
-                                                value={field.claimingValue}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].claimingValue = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Claiming Value"
-                                            />
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Account Total:</label>
-                                            <input
-                                                type="text"
-                                                name={`contractorValue_${index}`}
-                                                value={field.contractorValue}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].contractorValue = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Contractor Value"
-                                            />
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Progress:</label>
-                                            <input
-                                                type="text"
-                                                name={`finalValue_${index}`}
-                                                value={field.finalValue}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].finalValue = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Final Value"
-                                            />
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Interim:</label>
-                                            <input
-                                                type="text"
-                                                name={`interimPayment_${index}`}
-                                                value={field.interimPayment}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].interimPayment = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Interim Payment"
-                                            />
-                                        </div>
-                                        <div className="sec_field">
-                                            <label>Comment:</label>
-                                            <textarea
-                                                name={`comment_${index}`}
-                                                value={field.comment}
-                                                onChange={(e) => {
-                                                    const newFields = [...extraFields];
-                                                    newFields[index].comment = e.target.value;
-                                                    setExtraFields(newFields);
-                                                }}
-                                                placeholder="Comment"
-                                            />
-                                        </div>
+                                <div>
+                                    <div className="table-container">
+                                        <table >
+                                            <thead>
+                                                <tr>
+                                                    <th>Ref</th>
+                                                    <th>Item</th>
+                                                    <th>Category</th>
+                                                    <th>Type</th>
+                                                    <th>Zone</th>
+                                                    <th>Acw</th>
+                                                    <th>PCS</th>
+                                                    <th>Quantity</th>
+                                                    <th>Unit</th>
+                                                    <th>Rate</th>
+                                                    <th>Total</th>
+
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {extraFields.map((field, index) => (
+                                                    <tr key={index}>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                value={field.ref}
+                                                                name={`ref_${index}`}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].ref = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="Ref"
+                                                            />
+                                                        </td>
+
+                      
+
+                                                        <td>
+                                                            <select
+                                                                name={`item_${index}`}
+                                                                value={field.item}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].item = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                required
+                                                            >
+                                                                <option value="">Select Item</option>
+                                                                {items.length > 0 ? (
+                                                                    items.map((item) => (
+                                                                        <option key={item.id} value={item.id}>
+                                                                            {item.name}
+                                                                        </option>
+                                                                    ))
+                                                                ) : (
+                                                                    <option disabled>No items available</option>
+                                                                )}
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select
+                                                                name={`category_${index}`}
+                                                                value={field.category}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].category = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                required
+                                                            >
+                                                                <option value="">Select Category</option>
+                                                                {categories.length > 0 ? (
+                                                                    categories.map((category) => (
+                                                                        <option key={category.id} value={category.id}>
+                                                                            {category.name}
+                                                                        </option>
+                                                                    ))
+                                                                ) : (
+                                                                    <option disabled>No category available</option>
+                                                                )}
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select
+                                                                name={`type_${index}`}
+                                                                value={field.type}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].type = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                required
+                                                            >
+                                                                <option value="">Select Type</option>
+                                                                {types.length > 0 ? (
+                                                                    types.map((type) => (
+                                                                        <option key={type.id} value={type.id}>
+                                                                            {type.name}
+                                                                        </option>
+                                                                    ))
+                                                                ) : (
+                                                                    <option disabled>No types available</option>
+                                                                )}
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select
+                                                                name={`zone_${index}`}
+                                                                value={field.zone}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].zone = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                required
+                                                            >
+                                                                <option value="">Select Zone</option>
+                                                                {zones.length > 0 ? (
+                                                                    zones.map((zone) => (
+                                                                        <option key={zone.id} value={zone.id}>
+                                                                            {zone.name}
+                                                                        </option>
+                                                                    ))
+                                                                ) : (
+                                                                    <option disabled>No zones available</option>
+                                                                )}
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                value={field.acw}
+                                                                name={`acw_${index}`}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].acw = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="ACW"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                value={field.pcs}
+                                                                name={`pcs_${index}`}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].pcs = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="PCS"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                name={`qty_${index}`}
+                                                                value={field.qty}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].qty = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="Quantity"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                name={`unit_${index}`}
+                                                                value={field.unit}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].unit = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="Unit"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                name={`rate_${index}`}
+                                                                value={field.rate}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].rate = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="Rate"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                name={`total_${index}`}
+                                                                value={field.total}
+                                                                onChange={(e) => {
+                                                                    const newFields = [...extraFields];
+                                                                    newFields[index].total = e.target.value;
+                                                                    setExtraFields(newFields);
+                                                                }}
+                                                                placeholder="Total"
+                                                            />
+                                                        </td>
+
+
+  
+
+
+
+  
+                                                        <td>
+                                                            <button type="button" onClick={() => removeFields(index)}><i className="fas fa-calendar" /></button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                ))}
+
+                                </div>
 
                                 <div className="addmore_btn">
                                     <button type="button" className="btn" onClick={addFields}>Add Fields</button>
                                 </div>
                                 <div className="submit_btn">
                                     <input className="form_submit" type="submit" value="Send" />
-                                    <input className="form_submit" type="button" value="Prepare File" />
                                 </div>
                             </form>
                         </div>

@@ -107,7 +107,6 @@ nav ul li a:hover {
   flex-wrap: wrap;
   gap: 20px;
   justify-content: space-between;
-  max-width: 900px;
   margin: 20px auto;
   background-color: #f9f9f9;
   padding: 20px;
@@ -234,7 +233,7 @@ select :focus {
 
 .form_submit {
   border: 0;
-  border-radius: 50px;
+  border-radius: 5px;
   cursor: pointer;
   display: inline-block;
   font-size: 24px;
@@ -251,7 +250,6 @@ select :focus {
 .submit_btn {
   text-align: center;
   display: flex;
-  width: 44%;
   gap: 5%;
 }
 
@@ -274,9 +272,9 @@ body {
   background: #dfe9f5;
 }
 
-.container {
+/* .container {
   overflow: hidden;
-}
+} */
 
 nav {
   position: relative;
@@ -346,7 +344,7 @@ a:hover {
   bottom: 0;
 }
 .addmore_btn{
-  width: 13%;
+  width: 10%;
   margin-left: auto;
 }
 .btn {
@@ -750,4 +748,29 @@ tbody tr:nth-child(even) {
   background-color: #333; 
   color: #fff; 
 }
+
+
+
+/* pacment-processing extra fields */
+
+.table-container input[type="text"] {
+  font-size: 15px;
+  max-width: 100%;
+  padding: 5px;
+}
+
+.table-container table tbody tr td {
+  max-width: 78px;
+}
+
+
+.table-container select {
+  max-width: 100%;
+  font-size: 12px;
+  padding: 5px;
+}
+
+
+
+
 

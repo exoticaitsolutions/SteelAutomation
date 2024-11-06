@@ -8,6 +8,12 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
   const [entities, setEntities] = useState([]);
   const [clients, setClients] = useState([]); 
   const [projects, setProjects] = useState([]); 
+
+  const [zones, setZones] = useState([]); 
+  const [types, setTypes] = useState([]); 
+  const [categories, setCategories] = useState([]); 
+  const [items, setItems] = useState([]); 
+
   const [isEditing, setIsEditing] = useState(false);
 
 
@@ -48,6 +54,77 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     fetchClients();
   }, [token, apiUrls.clientsUrl]);
 
+  useEffect(() => {
+    const fetchZones = async () => {
+      if (!apiUrls.zonesUrl) return; 
+
+      try {
+        const response = await axios.get(apiUrls.zonesUrl, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setZones(response.data);
+      } catch (error) {
+        console.error('Error fetching zoness:', error);
+        toast.error('Error fetching zones');
+      }
+    };
+
+    fetchZones();
+  }, [token, apiUrls.zonesUrl]);
+
+  useEffect(() => {
+    const fetchTypes = async () => {
+      if (!apiUrls.typesUrl) return; 
+
+      try {
+        const response = await axios.get(apiUrls.typesUrl, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setTypes(response.data);
+      } catch (error) {
+        console.error('Error fetching types:', error);
+        toast.error('Error fetching types');
+      }
+    };
+
+    fetchTypes();
+  }, [token, apiUrls.typesUrl]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!apiUrls.categoriesUrl) return; 
+
+      try {
+        const response = await axios.get(apiUrls.categoriesUrl, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching category:', error);
+        toast.error('Error fetching category');
+      }
+    };
+
+    fetchCategories();
+  }, [token, apiUrls.categoryUrl]);
+
+  useEffect(() => {
+    const fetchItemss = async () => {
+      if (!apiUrls.itemsUrl) return; 
+
+      try {
+        const response = await axios.get(apiUrls.itemsUrl, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setItems(response.data);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+        toast.error('Error fetching items');
+      }
+    };
+
+    fetchItemss();
+  }, [token, apiUrls.itemsUrl]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -91,21 +168,27 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     }));
   };
 
+
   const handleSubmitBoth = async (e, extraFields) => {
     e.preventDefault();
 
     const dataToSubmit = {
       ...formValues,
       payment_notice_back_date: formValues.paymentNoticeBackDate, 
-      invoice_methods: extraFields.map((field, index) => ({
-          id: index + 1, 
-          category: field.status, 
-          zone: field.claimingValue,
-          account_total: field.contractorValue,
-          progress: field.finalValue,
-          interim: field.interimPayment,
-          comment: field.comment, 
-      })),
+      Payment_BoQDetailed: extraFields.map((field, index) => ({
+        ref: field.ref,  
+        acw: field.acw,           
+        pcs: field.pcs,
+        qty: field.qty,
+        unit: field.unit,
+        rate: field.rate,
+        total: field.total,
+        payment: field.payment,    
+        item: field.item,          
+        category: field.category,
+        type: field.type,
+        zone: field.zone,
+    })),
   };
 
     try {
@@ -148,6 +231,12 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
     entities,
     clients,
     projects,
+
+    zones,
+    types,
+    categories,
+    items,
+    
     isEditing,
     handleInputChange,
     handleSubmitBoth,
