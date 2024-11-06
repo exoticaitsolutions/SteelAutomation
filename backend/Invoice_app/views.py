@@ -559,6 +559,8 @@ class PaymentBoQDetailedListCreateAPIView(generics.ListCreateAPIView):
         )
     
 
+import json
+
 class ExcelDataView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     uploaded_file_path = None  # Class attribute to store the file path
@@ -589,10 +591,11 @@ class ExcelDataView(APIView):
                 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
                 df.dropna(how='all', inplace=True)
                 
-                # Convert the DataFrame to JSON
+                # Convert the DataFrame to JSON and parse it for correct format
                 json_data = df.to_json(orient='records')
+                json_data_parsed = json.loads(json_data)  # Parse the JSON string to ensure correct formatting
                 
-                return Response({"message": "File uploaded successfully", "data": json_data}, status=status.HTTP_201_CREATED)
+                return Response({"message": "File uploaded successfully", "data": json_data_parsed}, status=status.HTTP_201_CREATED)
 
             except FileNotFoundError:
                 return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -604,32 +607,7 @@ class ExcelDataView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    # def get(self, request, *args, **kwargs):
-    #     # Check if a file was uploaded previously
-    #     file_path = ExcelDataView.uploaded_file_path
-    #     if not file_path or not os.path.exists(file_path):
-    #         return Response({"error": "File not found or not uploaded yet"}, status=status.HTTP_404_NOT_FOUND)
 
-    #     try:
-    #         # Load the specific sheet into a pandas DataFrame
-    #         df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
-            
-    #         # Remove columns with "Unnamed" and drop rows that are entirely empty
-    #         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    #         df.dropna(how='all', inplace=True)
-            
-    #         # Convert the DataFrame to JSON
-    #         json_data = df.to_json(orient='records')
-            
-    #         # Return JSON data as response
-    #         return Response(json_data, status=status.HTTP_200_OK)
-        
-    #     except FileNotFoundError:
-    #         return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-    #     except ValueError as e:
-    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    #     except Exception as e:
-    #         return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
