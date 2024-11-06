@@ -566,52 +566,70 @@ class ExcelDataView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
-            # Get the uploaded file
-            uploaded_file = serializer.validated_data['file']
+            try:
+                # Get the uploaded file
+                uploaded_file = serializer.validated_data['file']
 
-            # Define the directory and file path
-            upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
-            os.makedirs(upload_dir, exist_ok=True)  # Create the 'uploads' directory if it doesn't exist
-            
-            file_path = os.path.join(upload_dir, uploaded_file.name)
-            
-            # Save the file to the server
-            with open(file_path, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
+                # Define the directory and file path
+                upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)  # Create the 'uploads' directory if it doesn't exist
+                
+                file_path = os.path.join(upload_dir, uploaded_file.name)
+                
+                # Save the file to the server
+                with open(file_path, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
 
-            # Store the file path in a class attribute for access in the get method
-            ExcelDataView.uploaded_file_path = file_path
-            
-            return Response({"message": "File uploaded successfully", "file_path": file_path}, status=status.HTTP_201_CREATED)
+                # Store the file path in a class attribute for access in the get method
+                ExcelDataView.uploaded_file_path = file_path
+                
+                # Read and process the Excel file
+                df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
+                df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+                df.dropna(how='all', inplace=True)
+                
+                # Convert the DataFrame to JSON
+                json_data = df.to_json(orient='records')
+                
+                return Response({"message": "File uploaded successfully", "data": json_data}, status=status.HTTP_201_CREATED)
+
+            except FileNotFoundError:
+                return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            except ValueError as e:
+                return Response({"error": f"Value error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, *args, **kwargs):
-        # Check if a file was uploaded previously
-        file_path = ExcelDataView.uploaded_file_path
-        if not file_path or not os.path.exists(file_path):
-            return Response({"error": "File not found or not uploaded yet"}, status=status.HTTP_404_NOT_FOUND)
 
-        try:
-            # Load the specific sheet into a pandas DataFrame
-            df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
+    # def get(self, request, *args, **kwargs):
+    #     # Check if a file was uploaded previously
+    #     file_path = ExcelDataView.uploaded_file_path
+    #     if not file_path or not os.path.exists(file_path):
+    #         return Response({"error": "File not found or not uploaded yet"}, status=status.HTTP_404_NOT_FOUND)
+
+    #     try:
+    #         # Load the specific sheet into a pandas DataFrame
+    #         df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
             
-            # Remove columns with "Unnamed" and drop rows that are entirely empty
-            df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-            df.dropna(how='all', inplace=True)
+    #         # Remove columns with "Unnamed" and drop rows that are entirely empty
+    #         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    #         df.dropna(how='all', inplace=True)
             
-            # Convert the DataFrame to JSON
-            json_data = df.to_json(orient='records')
+    #         # Convert the DataFrame to JSON
+    #         json_data = df.to_json(orient='records')
             
-            # Return JSON data as response
-            return Response(json_data, status=status.HTTP_200_OK)
+    #         # Return JSON data as response
+    #         return Response(json_data, status=status.HTTP_200_OK)
         
-        except FileNotFoundError:
-            return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #     except FileNotFoundError:
+    #         return Response({"error": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+    #     except ValueError as e:
+    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
