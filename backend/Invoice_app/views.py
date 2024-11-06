@@ -1,3 +1,4 @@
+import json
 import os
 import openpyxl
 from rest_framework import generics
@@ -559,7 +560,9 @@ class PaymentBoQDetailedListCreateAPIView(generics.ListCreateAPIView):
         )
     
 
-import json
+from django.shortcuts import get_object_or_404
+
+# Assuming you have your models and serializers imported, and other setup done
 
 class ExcelDataView(APIView):
     parser_classes = [MultiPartParser, FormParser]
@@ -575,9 +578,8 @@ class ExcelDataView(APIView):
                 # Define the directory and file path
                 upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
                 os.makedirs(upload_dir, exist_ok=True)  # Create the 'uploads' directory if it doesn't exist
-                
                 file_path = os.path.join(upload_dir, uploaded_file.name)
-                
+
                 # Save the file to the server
                 with open(file_path, 'wb+') as destination:
                     for chunk in uploaded_file.chunks():
@@ -585,16 +587,31 @@ class ExcelDataView(APIView):
 
                 # Store the file path in a class attribute for access in the get method
                 ExcelDataView.uploaded_file_path = file_path
-                
+
                 # Read and process the Excel file
                 df = pd.read_excel(file_path, sheet_name='BoQ_Detailed ', header=1, engine='openpyxl')
                 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
                 df.dropna(how='all', inplace=True)
-                
+
                 # Convert the DataFrame to JSON and parse it for correct format
                 json_data = df.to_json(orient='records')
-                json_data_parsed = json.loads(json_data)  # Parse the JSON string to ensure correct formatting
-                
+                json_data_parsed = json.loads(json_data)
+
+                # Prepare mappings from name to ID for each category, type, zone, and unit
+                item_category_ids = {name: id for id, name in ItemCategory.objects.values_list('id', 'name')}
+                item_type_ids = {name: id for id, name in ItemType.objects.values_list('id', 'name')}
+                item_zone_ids = {name: id for id, name in ItemZone.objects.values_list('id', 'name')}
+                item_unit_ids = {name: id for id, name in ItemUnit.objects.values_list('id', 'name')}
+
+                # Replace 'Cat', 'Type', 'Zone', 'Unit' with their respective IDs in each data entry
+                for data in json_data_parsed:
+                    data['Cat'] = item_category_ids.get(data['Cat'], None)  # Get ID or None if not found
+                    data['Type'] = item_type_ids.get(data['Type'], None)
+                    data['Zone'] = item_zone_ids.get(data['Zone'], None)
+                    data['Unit'] = item_unit_ids.get(data['Unit'], None)
+
+                    print("Updated data with IDs:", data)
+
                 return Response({"message": "File uploaded successfully", "data": json_data_parsed}, status=status.HTTP_201_CREATED)
 
             except FileNotFoundError:
@@ -603,9 +620,8 @@ class ExcelDataView(APIView):
                 return Response({"error": f"Value error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
