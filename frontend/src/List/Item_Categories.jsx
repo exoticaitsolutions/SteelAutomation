@@ -8,34 +8,31 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import Topbar from '../components/Topbar';
 
-
-function Clients() {
-    const [clients, setClients] = useState([]);
+function ItemCategories() {
+    const [categories, setCategories] = useState([]);
     const token = localStorage.getItem('userToken');
     const userRole = localStorage.getItem('userRole');
 
     const navigate = useNavigate();
     
     useEffect(() => {
-        const fetchClients = async () => {
+        const fetchCategories = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/clients/`, {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/item-categories/`, {
                     headers: {
                         "Authorization": `Token ${token}`
                     }
                 });
-                setClients(response.data);
+                setCategories(response.data);
             } catch (error) {
-                console.error('Error fetching client data:', error);
+                console.error('Error fetching Categories data:', error);
                 console.log(token);
             }
         };
 
-        fetchClients();
+        fetchCategories();
     }, [token]);
 
-
-    
     const handleDelete = async (id) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -48,24 +45,24 @@ function Clients() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/clients/${id}/`, {
+                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/item-categories/${id}/`, {
                         headers: {
                             "Authorization": `Token ${token}`
                         }
                     });
 
-                    setClients(clients.filter(client => client.id !== id));
+                    setCategories(categories.filter(category => category.id !== id));
 
                     Swal.fire(
                         'Deleted!',
-                        'The client has been deleted.',
+                        'The category has been deleted.',
                         'success'
                     );
                 } catch (error) {
                     console.error('Error deleting client:', error);
                     Swal.fire(
                         'Error!',
-                        'There was a problem deleting the client.',
+                        'There was a problem deleting the category.',
                         'error'
                     );
                 }
@@ -73,11 +70,9 @@ function Clients() {
         });
     };
 
-
-    const handleEdit = (client) => {
-        navigate(`/dashboard/add_client`, { state: { item: client } });
+    const handleEdit = (category) => {
+        navigate(`/dashboard/add_item_category`, { state: { item: category } });
     };
-
 
     return (
             <div className="container">
@@ -87,7 +82,7 @@ function Clients() {
                     <div className="list-main">
                         {userRole === 'ADMIN' && (
                             <div className='add_btn'>
-                                <Link to="/dashboard/add_client"><button>Add <AddIcon className='plus_icon'/></button></Link>
+                                <Link to="/dashboard/add_item_category"><button>Add <AddIcon className='plus_icon'/></button></Link>
                             </div>
                         )}
                         <table className='table'>
@@ -95,27 +90,21 @@ function Clients() {
                                 
                                 <tr>
                                     <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Entity</th>
                                     {userRole === "ADMIN" && (
                                         <th>Action</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody>
-                                {clients.length > 0 ? (
-                                    clients.map(client => (
-                                        <tr key={client.id}>
-                                            <td>{client.client_name}</td>
-                                            <td>{client.email}</td>
-                                            <td>{client.address}</td>
-                                            <td>{client.entity.entity_name}</td>
+                                {categories.length > 0 ? (
+                                    categories.map(category => (
+                                        <tr key={category.id}>
+                                            <td>{category.name}</td>
                                             {userRole === 'ADMIN' && (
                                                 <td>
                                                     <div className='action_btn'>
-                                                        <button onClick={() => handleEdit(client)}><EditIcon/></button>
-                                                        <button onClick={() => handleDelete(client.id)}><DeleteIcon /></button>
+                                                        <button onClick={() => handleEdit(category)}><EditIcon/></button>
+                                                        <button onClick={() => handleDelete(category.id)}><DeleteIcon /></button>
                                                     </div>
                                                 </td>
                                             )}
@@ -124,7 +113,7 @@ function Clients() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5">No clients found</td>
+                                        <td colSpan="5">No category found</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -136,4 +125,4 @@ function Clients() {
     );
 }
 
-export default Clients;
+export default ItemCategories;

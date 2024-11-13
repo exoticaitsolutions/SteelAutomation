@@ -8,34 +8,32 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import Topbar from '../components/Topbar';
 
-
-function Clients() {
-    const [clients, setClients] = useState([]);
+function ItemUnits() {
+    const [units, setUnits] = useState([]);
     const token = localStorage.getItem('userToken');
     const userRole = localStorage.getItem('userRole');
 
     const navigate = useNavigate();
     
     useEffect(() => {
-        const fetchClients = async () => {
+        const fetchUnits = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/clients/`, {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/item-units/`, {
                     headers: {
                         "Authorization": `Token ${token}`
                     }
                 });
-                setClients(response.data);
+                setUnits(response.data);
             } catch (error) {
-                console.error('Error fetching client data:', error);
+                console.error('Error fetching setUnits data:', error);
                 console.log(token);
+                
             }
         };
 
-        fetchClients();
+        fetchUnits();
     }, [token]);
 
-
-    
     const handleDelete = async (id) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -48,24 +46,24 @@ function Clients() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/clients/${id}/`, {
+                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/item-units/${id}/`, {
                         headers: {
                             "Authorization": `Token ${token}`
                         }
                     });
 
-                    setClients(clients.filter(client => client.id !== id));
+                    setUnits(units.filter(unit => unit.id !== id));
 
                     Swal.fire(
                         'Deleted!',
-                        'The client has been deleted.',
+                        'The Item_units has been deleted.',
                         'success'
                     );
                 } catch (error) {
-                    console.error('Error deleting client:', error);
+                    console.error('Error deleting Item_units:', error);
                     Swal.fire(
                         'Error!',
-                        'There was a problem deleting the client.',
+                        'There was a problem deleting the Item_units.',
                         'error'
                     );
                 }
@@ -73,11 +71,9 @@ function Clients() {
         });
     };
 
-
-    const handleEdit = (client) => {
-        navigate(`/dashboard/add_client`, { state: { item: client } });
+    const handleEdit = (unit) => {
+        navigate(`/dashboard/add_item_unit`, { state: { item: unit } });
     };
-
 
     return (
             <div className="container">
@@ -87,35 +83,29 @@ function Clients() {
                     <div className="list-main">
                         {userRole === 'ADMIN' && (
                             <div className='add_btn'>
-                                <Link to="/dashboard/add_client"><button>Add <AddIcon className='plus_icon'/></button></Link>
+                                <Link to="/dashboard/add_item_unit"><button>Add <AddIcon className='plus_icon'/></button></Link>
                             </div>
                         )}
                         <table className='table'>
                             <thead>
-                                
+            
                                 <tr>
                                     <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Entity</th>
                                     {userRole === "ADMIN" && (
                                         <th>Action</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody>
-                                {clients.length > 0 ? (
-                                    clients.map(client => (
-                                        <tr key={client.id}>
-                                            <td>{client.client_name}</td>
-                                            <td>{client.email}</td>
-                                            <td>{client.address}</td>
-                                            <td>{client.entity.entity_name}</td>
+                                {units.length > 0 ? (
+                                    units.map(unit => (
+                                        <tr key={unit.id}>
+                                            <td>{unit.name}</td>
                                             {userRole === 'ADMIN' && (
                                                 <td>
                                                     <div className='action_btn'>
-                                                        <button onClick={() => handleEdit(client)}><EditIcon/></button>
-                                                        <button onClick={() => handleDelete(client.id)}><DeleteIcon /></button>
+                                                        <button onClick={() => handleEdit(unit)}><EditIcon /></button>
+                                                        <button onClick={() => handleDelete(unit.id)}><DeleteIcon/></button>
                                                     </div>
                                                 </td>
                                             )}
@@ -124,7 +114,7 @@ function Clients() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5">No clients found</td>
+                                        <td colSpan="5">No unit found</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -136,4 +126,4 @@ function Clients() {
     );
 }
 
-export default Clients;
+export default ItemUnits;

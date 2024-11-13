@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useFormHandler from '../hooks/useFormHandler';
+import Topbar from '../components/Topbar';
 
 function AddClient() {
 
@@ -12,9 +13,9 @@ function AddClient() {
   const initialValues = { client_name: '', email: '', entity: '', address: '' };
 
   const apiUrls = {
-   baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/clients/`,
-   entityUrl: `${process.env.REACT_APP_API_BASE_URL}/api/entities/`,
-   redirectUrl: '/dashboard/clients',
+    baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/clients/`,
+    entityUrl: `${process.env.REACT_APP_API_BASE_URL}/api/entities/`,
+    redirectUrl: '/dashboard/clients',
   };
 
   const { formValues, entities, handleInputChange, handleSubmit } = useFormHandler(initialValues, apiUrls, token, navigate, location);
@@ -23,17 +24,15 @@ function AddClient() {
     <div className="container">
       <Sidebar />
       <section className="main">
-        <div className="main-top">
-          <div className="heading">
-            <h2>{formValues.id ? 'Edit Client' : 'Add Client'}</h2>
-          </div>
-        </div>
-
+        <Topbar />
         <div className="main-skills">
           <section className="add_client_page">
             <div className="container">
               <form onSubmit={handleSubmit} className="form">
                 <div className="fields_main">
+                  <div className="table-heading">
+                    <h2>{formValues.id ? 'Edit Client' : 'Add Client'}</h2>
+                  </div>
                   <div className="sec_field">
                     <label>Client Name :</label>
                     <input
@@ -60,8 +59,8 @@ function AddClient() {
                     <label> Entity :</label>
                     <select
                       name="entity"
-                      value={formValues.entity} 
-                      onChange={handleInputChange} 
+                      value={formValues.entity}
+                      onChange={handleInputChange}
                       required
                     >
                       <option value="">Select Entity</option>

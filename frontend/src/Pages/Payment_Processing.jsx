@@ -119,8 +119,7 @@ function PaymentProcessing() {
                             <form onSubmit={(e) => handleSubmitBoth(e, extraFields)} className="form">
                                 <div className="fields_main">
                                     <div className="table-heading">
-                                        <h2>Payment Processing</h2>
-
+                                        <h2>Application of Payment</h2>
                                     </div>
                                     <div className="sec_field">
                                         <label>Entity :</label>
@@ -433,8 +432,8 @@ function PaymentProcessing() {
                                                         </td>
 
                                                         <td>
-                                                            <button type="button" onClick={() => removeFields(index)}><RemoveIcon /></button>
-                                                            <button type="button"  onClick={addFields}><AddIcon/></button>
+                                                            <button className="btn_color" type="button" onClick={() => removeFields(index)}><RemoveIcon /></button>
+                                                            <button className="btn_color"  type="button"  onClick={addFields}><AddIcon/></button>
                                                         </td>
                                                     </tr>
                                                 ))}

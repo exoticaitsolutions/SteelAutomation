@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useFormHandler from '../hooks/useFormHandler';
+import Topbar from '../components/Topbar';
 
 function AddProject() {
   const token = localStorage.getItem("userToken");
@@ -29,17 +30,17 @@ function AddProject() {
     <div className="container">
       <Sidebar />
       <section className="main">
-        <div className="main-top">
-          <div className="heading">
-            <h2>{isEditing ? 'Edit Project' : 'Add Project'}</h2>
-          </div>
-        </div>
+        <Topbar />
+
 
         <div className="main-skills">
           <section className="add_project_page">
             <div className="container">
               <form onSubmit={handleSubmit} className="form">
                 <div className="fields_main">
+                  <div className="table-heading">
+                    <h2>{isEditing ? 'Edit Project' : 'Add Project'}</h2>
+                  </div>
                   <div className="sec_field">
                     <label>Project Name :</label>
                     <input
@@ -86,7 +87,7 @@ function AddProject() {
                     <label>Entity :</label>
                     <select
                       name="entity"
-                      value={formValues.entity} 
+                      value={formValues.entity}
                       onChange={handleInputChange}
                       required
                     >

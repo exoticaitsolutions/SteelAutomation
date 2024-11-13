@@ -3,6 +3,9 @@ import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import Topbar from '../components/Topbar';
 
 function Contracts() {
@@ -77,7 +80,7 @@ function Contracts() {
                 <div className="list-main">
                 {userRole === 'ADMIN' && (
                     <div className='add_btn'>
-                        <Link to="/dashboard/add_contract"><button>Add Contract</button></Link>
+                        <Link to="/dashboard/add_contract"><button>Add <AddIcon className='plus_icon'/></button></Link>
                     </div>
                 )}
                     <table className='table'>
@@ -100,10 +103,10 @@ function Contracts() {
                                         <td>
                                             <div className='action_btn'>
                                                 <button onClick={() => handleEdit(contract)}>
-                                                    <i className="fas fa-edit" />
+                                                    <EditIcon/>
                                                 </button>
                                                 <button onClick={() => handleDelete(contract.id)}>
-                                                    <i className="fas fa-trash" />
+                                                    <DeleteIcon />
                                                 </button>
                                             </div>
                                         </td>

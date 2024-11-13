@@ -38,17 +38,33 @@ return (
                         <i className="fas fa-chart-bar"></i>
                         <span className="nav-item">Contracts</span>
                     </Link></li>
+                    <li><Link to="/dashboard/item_categories">
+                        <i className="fas fa-object-ungroup"></i>
+                        <span className="nav-item">Categories</span>
+                    </Link></li>
+                    <li><Link to="/dashboard/item_types">
+                        <i className="fas fa-podcast"></i>
+                        <span className="nav-item">Types</span>
+                    </Link></li>
+                    <li><Link to="/dashboard/item_zones">
+                        <i className="fas fa-bolt"></i>  
+                        <span className="nav-item">Zones</span>
+                    </Link></li>
+                    <li><Link to="/dashboard/item_units">
+                        <i className="fas fa-database"></i>  
+                        <span className="nav-item">Units</span>
+                    </Link></li>
 
-                    <li><Link to="">
+                    {/* <li><Link to="">
                         <i className="fas fa-cog"></i>
                         <span className="nav-item">Settings</span>
-                    </Link></li>
+                    </Link></li>  */}
 
-                    <li><Link to="">
+                    {/* <li><Link to="">
                         <i className="fas fa-question-circle"></i>
                         <span className="nav-item">Help</span>
-                    </Link></li>
-                    <li><Link to="" className="logout" onClick={handleLogout}>
+                    </Link></li> */}
+                    <li><Link to=""  onClick={handleLogout}>
                         <i className="fas fa-sign-out-alt"></i>
                         <span className="nav-item">Log out</span>
                     </Link></li>

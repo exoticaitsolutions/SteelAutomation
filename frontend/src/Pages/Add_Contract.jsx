@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useFormHandler from '../hooks/useFormHandler';
+import Topbar from '../components/Topbar';
 
 function AddContract() {
     const token = localStorage.getItem("userToken");
@@ -35,24 +36,23 @@ function AddContract() {
         <div className="container">
             <Sidebar />
             <section className="main">
-                <div className="main-top">
-                    <div className="heading">
-                        <h2>{isEditing ? 'Edit Contract' : 'Add Contract'}</h2>
-                    </div>
-                </div>
+                <Topbar/>
                 <div className="main-skills">
                     <section className="add_contract_page">
                         <div className="container">
                             <form className="form" onSubmit={handleSubmit}>
-                                <div className="fields_main_contract">
+                            <div className="fields_main">
+                                    <div className="table-heading">
+                                    <h2>{isEditing ? 'Edit Contract' : 'Add Contract'}</h2>
+                                    </div>
                                     <div className="sec_field">
                                         <label>Contract Details:</label>
-                                        <input 
-                                            type="text" 
-                                            name="contract_details" 
-                                            placeholder="Contract Details" 
-                                            value={formValues.contract_details} 
-                                            onChange={handleInputChange} 
+                                        <input
+                                            type="text"
+                                            name="contract_details"
+                                            placeholder="Contract Details"
+                                            value={formValues.contract_details}
+                                            onChange={handleInputChange}
                                             required
                                         />
                                     </div>
@@ -60,7 +60,7 @@ function AddContract() {
                                         <label>Project:</label>
                                         <select
                                             name="project"
-                                            value={formValues.project} 
+                                            value={formValues.project}
                                             onChange={handleInputChange}
                                             required
                                         >

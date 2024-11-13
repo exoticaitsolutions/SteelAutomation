@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import { Link, useNavigate } from 'react-router-dom';
 import Topbar from '../components/Topbar';
 
@@ -80,7 +83,7 @@ function Projects() {
                 <div className="list-main">
                 {userRole === 'ADMIN' && (
                     <div className='add_btn'>
-                        <Link to="/dashboard/add_project"><button>Add Projects</button></Link>
+                        <Link to="/dashboard/add_project"><button>Add <AddIcon className='plus_icon'/></button></Link>
                     </div>
                 )}
                     <table className='table'>
@@ -106,8 +109,8 @@ function Projects() {
                                         {userRole === 'ADMIN' && (
                                         <td>
                                             <div className='action_btn'>
-                                                <button onClick={() => handleEdit(project)}><i className="fas fa-edit"/></button>
-                                                <button onClick={() => handleDelete(project.id)}><i className="fas fa-calendar"/></button>
+                                                <button onClick={() => handleEdit(project)}><EditIcon/></button>
+                                                <button onClick={() => handleDelete(project.id)}><DeleteIcon/></button>
                                             </div>
                                         </td>
                                         )}

@@ -3,6 +3,9 @@ import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import Topbar from '../components/Topbar';
 
 function Payments() {
@@ -87,7 +90,7 @@ function Payments() {
                 <div className="list-main">
                     {userRole === 'ADMIN' && (
                         <div className="add_btn">
-                            <Link to="/dashboard/payment_processing"><button>Add Payment</button></Link>
+                            <Link to="/dashboard/payment_processing"><button>Add <AddIcon className='plus_icon'/></button></Link>
                         </div>
                     )}
                     <table className="table">
@@ -117,8 +120,8 @@ function Payments() {
                                         {userRole === 'ADMIN' && (
                                             <td>
                                                 <div className="action_btn">
-                                                    <button onClick={() => handleEdit(payment)}><i className="fas fa-edit" /></button>
-                                                    <button onClick={() => handleDelete(payment.id)}><i className="fas fa-calendar" /></button>
+                                                    <button onClick={() => handleEdit(payment)}><EditIcon/></button>
+                                                    <button onClick={() => handleDelete(payment.id)}><DeleteIcon /></button>
                                                 </div>
                                             </td>
                                         )}

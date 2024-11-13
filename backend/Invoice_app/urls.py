@@ -81,9 +81,9 @@ urlpatterns = [
         name="Payment-detail",
     ),
     path(
-        "BoQDetailed/",
+        "boq-detailed/",  # Renaming for clarity
         PaymentBoQDetailedListCreateAPIView.as_view(),
-        name="BoQ-detail",
+        name="BoQ-detailed-list-create",
     ),
     path('excel-data/', ExcelDataView.as_view(), name='excel-data'),
 

@@ -241,11 +241,17 @@ class ItemUnitSerializer(serializers.ModelSerializer):
 
 
 class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
+    # Adding custom fields for the names of related models
+    unit_name = serializers.CharField(source='unit.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    type_name = serializers.CharField(source='type.name', read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+
     class Meta:
         model = PaymentBoQDetailed
         fields = [
-            'id', 'acw', 'pcs', 'qty', 'unit', 'rate', 'total',
-            'item', 'category', 'type', 'zone'
+            'id', 'acw', 'pcs', 'qty', 'item', 'rate', 'total',
+            'unit', 'unit_name', 'category', 'category_name', 'type', 'type_name', 'zone', 'zone_name'
         ]
 
 
@@ -274,6 +280,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
         # Create nested PaymentBoQDetailed instances
         for boq_data in payment_boq_detailed_data:
+            boq_data.pop('payment', None)
             # Create each PaymentBoQDetailed instance linked to the created payment
             PaymentBoQDetailed.objects.create(payment=payment, **boq_data)
 

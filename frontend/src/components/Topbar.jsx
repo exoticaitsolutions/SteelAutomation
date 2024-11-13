@@ -13,7 +13,7 @@ function Topbar() {
 
     
     return (
-        <section className="Topbar flex">
+        <section className={`Topbar flex ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
             <div className="Toggle-main">
             <button className="toggle-btn" onClick={handleToggle}>
                 {isSidebarOpen ? (
