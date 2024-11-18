@@ -279,9 +279,7 @@ body {
   background: #dfe9f5;
 }
 
-/* .container {
-  overflow: hidden;
-} */
+
 nav {
   position: fixed; 
   top: 0;
@@ -748,7 +746,7 @@ tbody tr:nth-child(even) {
 
 .table th,
 .table td {
-  padding: 10px 15px;
+  padding: 10px 5px;
   text-align: center;
   border-bottom: 1px solid #ddd;
 }

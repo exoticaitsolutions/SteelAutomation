@@ -23,6 +23,8 @@ function PaymentProcessing() {
         payment_category: "",
         payment_sent_date: "",
         paymentNoticeBackDate: "",
+        progress: "",
+        nett_payment_due: "",
     };
 
 
@@ -208,13 +210,33 @@ function PaymentProcessing() {
                                             placeholder="Payment Notice Back Date"
                                         />
                                     </div>
+                                    <div className="sec_field">
+                                        <label>Progress:</label>
+                                        <input
+                                            type="text"
+                                            name="progress"
+                                            value={formValues.progress}
+                                            onChange={handleInputChange}
+                                            placeholder="Progress"
+                                        />
+                                    </div>
+                                    <div className="sec_field">
+                                        <label>Nett Payment Due:</label>
+                                        <input
+                                            type="text"
+                                            name="nett_payment_due"
+                                            value={formValues.nett_payment_due}
+                                            onChange={handleInputChange}
+                                            placeholder="Nett Payment Due"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>
                                     <div className="table-container">
-                                    <div className="addmore_btn">
-                                        <button className="btn"  onClick={() => document.getElementById("fileInput").click()}>Import File <DownloadIcon/></button>
-                                       </div>
+                                        <div className="addmore_btn">
+                                            <button className="btn" onClick={() => document.getElementById("fileInput").click()}>Import File <DownloadIcon /></button>
+                                        </div>
                                         <input
                                             type="file"
                                             id="fileInput"
@@ -433,14 +455,14 @@ function PaymentProcessing() {
 
                                                         <td>
                                                             <button className="btn_color" type="button" onClick={() => removeFields(index)}><RemoveIcon /></button>
-                                                            <button className="btn_color"  type="button"  onClick={addFields}><AddIcon/></button>
+                                                            <button className="btn_color" type="button" onClick={addFields}><AddIcon /></button>
                                                         </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     </div>
-                                    
+
                                 </div>
                                 <div className="submit_btn">
                                     <input className="form_submit" type="submit" value="Send" />

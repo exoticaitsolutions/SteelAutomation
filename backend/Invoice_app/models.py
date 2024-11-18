@@ -83,6 +83,9 @@ class Payment(models.Model):
     payment_category = models.CharField(max_length=255)
     payment_sent_date = models.DateField()
     payment_notice_back_date = models.DateField(blank=True, null=True)
+      
+    progress = models.IntegerField( blank=True, null=True) 
+    nett_payment_due = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  
 
     def __str__(self):
         return f"Payment for {self.project.project_name} - {self.payment_category }"
@@ -94,6 +97,7 @@ class Payment(models.Model):
         if self.payment_notice_back_date:
             return self.payment_notice_back_date.strftime("%d/%m/%Y")
         return None  # Or return an empty string or some default value
+    
 
 
 class ItemCategory(models.Model):
