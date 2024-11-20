@@ -175,7 +175,7 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
 
     const dataToSubmit = {
       ...formValues,
-      payment_notice_back_date: formValues.paymentNoticeBackDate, 
+
       Payment_BoQDetailed: extraFields.map((field, index) => ({
         ref: field.ref,  
         acw: field.acw,           
@@ -213,13 +213,13 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Payload:', formValues);
     try {
       const apiUrl = isEditing ? `${apiUrls.baseUrl}${formValues.id}/` : apiUrls.baseUrl;
       const method = isEditing ? 'put' : 'post';
       await axios[method](apiUrl, formValues, {
         headers: { Authorization: `Token ${token}` },
       });
-      toast.success(isEditing ? 'Item updated successfully!' : 'Item added successfully!');
       navigate(apiUrls.redirectUrl);
     } catch (error) {
       console.error('Error saving item:', error.response ? error.response.data : error.message);
@@ -228,8 +228,6 @@ function useFormHandler(initialValues, apiUrls, token, navigate, location) {
   };
   
 
-
-  
   return {
     formValues,
     entities,

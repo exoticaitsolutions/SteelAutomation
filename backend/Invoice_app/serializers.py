@@ -142,12 +142,69 @@ class ClientSerializer(serializers.ModelSerializer):
         )
 
         return representation
+    
+class ItemCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemCategory
+        fields = ['id', 'name']
+
+class ItemTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemType
+        fields = ['id', 'name']
+
+class ItemZoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemZone
+        fields = ['id', 'name']
+
+class ItemUnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemUnit
+        fields = ['id', 'name']
+
+class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
+    # Adding custom fields for the names of related models
+    unit_name = serializers.CharField(source='unit.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    type_name = serializers.CharField(source='type.name', read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+
+    class Meta:
+        model = PaymentBoQDetailed
+        fields = [
+            'id', 'acw', 'pcs', 'qty', 'item', 'rate', 'total',
+            'unit', 'unit_name', 'category', 'category_name', 'type', 'type_name', 'zone', 'zone_name'
+        ]
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    Payment_BoQDetailed = PaymentBoQDetailedSerializer(many=True, source='boq_detailed')
     class Meta:
         model = Project
-        fields = "__all__"
+        fields = [
+            'id',
+            'entity',
+            'project_name',
+            'description', 
+            'client', 
+            'Payment_BoQDetailed',
+        ]
+
+    def create(self, validated_data):
+     
+        payment_boq_detailed_data = validated_data.pop('boq_detailed', [])
+
+      
+        project = Project.objects.create(**validated_data)
+
+        print("----------------"*13, project)
+        for boq_data in payment_boq_detailed_data:
+            boq_data.pop('Project', None)
+
+            PaymentBoQDetailed.objects.create(project=project, **boq_data)
+
+        return project
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -161,6 +218,11 @@ class ProjectSerializer(serializers.ModelSerializer):
             instance.client,
             fields=[field.name for field in instance.client._meta.fields],
         )
+
+        # Access the related objects using the correct related_name
+        # representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
+        #     instance.boq_detailed.all(), many=True
+        # ).data
 
         return representation
 
@@ -224,23 +286,9 @@ class ItemUnitSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
-    # Adding custom fields for the names of related models
-    unit_name = serializers.CharField(source='unit.name', read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    type_name = serializers.CharField(source='type.name', read_only=True)
-    zone_name = serializers.CharField(source='zone.name', read_only=True)
-
-    class Meta:
-        model = PaymentBoQDetailed
-        fields = [
-            'id', 'acw', 'pcs', 'qty', 'item', 'rate', 'total',
-            'unit', 'unit_name', 'category', 'category_name', 'type', 'type_name', 'zone', 'zone_name'
-        ]
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    Payment_BoQDetailed = PaymentBoQDetailedSerializer(many=True, source='boq_detailed')
 
     class Meta:
         model = Payment
@@ -254,23 +302,14 @@ class PaymentSerializer(serializers.ModelSerializer):
             'payment_notice_back_date',
             'progress',  
             'nett_payment_due',
-            'Payment_BoQDetailed',
    
         ]
 
     def create(self, validated_data):
         # Extract nested PaymentBoQDetailed data
-        payment_boq_detailed_data = validated_data.pop('boq_detailed', [])
 
         # Create the Payment instance
         payment = Payment.objects.create(**validated_data)
-
-        # Create nested PaymentBoQDetailed instances
-        for boq_data in payment_boq_detailed_data:
-            boq_data.pop('payment', None)
-            # Create each PaymentBoQDetailed instance linked to the created payment
-            PaymentBoQDetailed.objects.create(payment=payment, **boq_data)
-
         return payment
 
 
@@ -300,9 +339,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         }
 
         # Access the related objects using the correct related_name
-        representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
-            instance.boq_detailed.all(), many=True
-        ).data
 
         return representation
     

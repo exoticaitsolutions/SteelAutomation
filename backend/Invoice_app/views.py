@@ -268,15 +268,17 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
-        response = super().create(request, *args, **kwargs)
+        # response = super().create(request, *args, **kwargs)
+        project_id = serializer.data['id']
+        project_name = serializer.data['project_name']
 
-        project_id = response.data['id']
-        project_name = response.data['project_name']
+        folder_name = f"{project_name}_{project_id}"
 
-        folder_name = f"{project_id}_{project_name}"
-
-        base_path = f"/home/dell/Videos/" 
+        base_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/Project_folders" 
 
         folder_structure = {
             folder_name: { 
@@ -323,7 +325,153 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
 
         create_folders(base_path, folder_structure)
 
-        return response
+        original_workbook_path = "/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/template1.xlsm"  
+        if not os.path.exists(original_workbook_path):
+            return Response(
+                {"error": "Original workbook not found."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        wb = load_workbook(original_workbook_path)
+        sheet_name = "BoQ_Detailed " 
+        if sheet_name not in wb.sheetnames:
+            return Response(
+                {"error": f"Sheet '{sheet_name}' not found in the workbook."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        sheet = wb[sheet_name]
+        start_row = 5  
+        row = start_row + 1  
+        print("----------"*20, serializer.data)
+
+        boq_details = serializer.data.get("Payment_BoQDetailed", [])
+
+        final_total = 0
+
+        for item in boq_details:
+  
+            final_total += float(item['total'])
+
+        print("Final Total:", final_total)
+
+        if not boq_details:
+            return Response(
+                {"error": "No BoQ details found in the response."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        start_row = 4
+        for index, item in enumerate(boq_details):
+            row = start_row + index + 1
+
+            sheet[f"B{row}"] = item.get("item", "")
+            sheet[f"C{row}"] = item.get("category_name", "")
+            sheet[f"D{row}"] = item.get("type_name", "")
+            sheet[f"E{row}"] = item.get("zone_name", "")
+            sheet[f"F{row}"] = item.get("acw", "",)
+            sheet[f"G{row}"] = item.get("pcs", "")
+            sheet[f"H{row}"] = item.get("qty", "")
+            sheet[f"I{row}"] = item.get("unit_name", "")
+            sheet[f"J{row}"] = item.get("rate", "")
+            sheet[f"K{row}"] = item.get("total", "") 
+        sheet[f"K45"] = final_total
+
+        print("second sheet ============================================================")
+
+        sheet_name2 = 'BoQ_Summary' 
+        if sheet_name2 not in wb.sheetnames:
+            return Response(
+                {"error": f"Sheet '{sheet_name2}' not found in the workbook."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        else:
+            print("BOQ Summary sheet is find------------------------" )
+        
+        result = PaymentBoQDetailed.objects.values('category__name', 'zone__name')\
+                                        .annotate(
+                                            QTY=Sum('qty'),
+                                            RATE=Sum('rate'),
+                                            TOTAL=Sum(F('rate') * F('qty')),
+                                            total_amount=Sum('total')
+                                        )
+
+        BOQ_Summary =[]
+
+        for item in result:
+            entry = {
+                'Category_Name': item['category__name'],
+                'Zone_Name' : item['zone__name'],
+                'Total_Quantity': item['QTY'],
+                'Total_Rate': item['RATE'],
+                'Total_Amount': item['total_amount']
+            }
+
+            BOQ_Summary.append(entry)
+
+        print("BOQ_Summary=====>>>>",BOQ_Summary)
+ 
+
+        sheet = wb[sheet_name2]  
+        start_row = 5
+        for index, item in enumerate(BOQ_Summary):
+            row = start_row + index + 1
+
+            sheet[f"B{row}"] = item.get("Category_Name", "")
+            sheet[f"C{row}"] = item.get("Zone_Name", "")
+            sheet[f"D{row}"] = item.get("Total_Quantity", "")
+            sheet[f"F{row}"] = item.get("Total_Rate", "")
+            sheet[f"G{row}"] = item.get("Total_Amount", "",)
+        
+
+        print("Third sheet ============================================================")
+        
+        sheet_name3 = 'AFP Summary' 
+        if sheet_name3 not in wb.sheetnames:
+            return Response(
+                {"error": f"Sheet '{sheet_name2}' not found in the workbook."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        else:
+            print("AFP Summary sheet is find------------------------" )
+        
+        total_amount_by_category = defaultdict(list)
+
+        for item in BOQ_Summary:
+            total_amount_by_category[item['Category_Name']].append(item['Total_Amount'])
+
+        final_result_category_total = []
+
+        for category, amounts in total_amount_by_category.items():
+            detailed_amounts = ' + '.join([str(amount) for amount in amounts])
+            total_amount = round(sum(amounts), 2)  
+            final_result_category_total.append({"category_name": category, "total_amount": total_amount})
+
+        print("final_result_category_total=======>>", final_result_category_total)
+
+        sheet = wb[sheet_name3]  
+        start_row = 14
+        for index, item in enumerate(final_result_category_total):
+            row = start_row + index + 1
+
+            sheet[f"C{row}"] = item.get("category_name", "")
+            sheet[f"E{row}"] = item.get("total_amount", "")
+
+
+        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        new_workbook_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/{folder_name}.xlsm" 
+        wb.save(new_workbook_path)
+        wb.close()
+        file_url = f"/media/payment_{folder_name}.xlsm"
+
+        return Response(
+            {
+                "message": "Payment created successfully and data stored in Excel",
+                "client": serializer.data,
+                "file_url": file_url
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -528,162 +676,124 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
             self.permission_classes = [IsAuthenticated]
         return super(PaymentListCreateAPIView, self).get_permissions()
 
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        self.perform_create(serializer)  
 
+        project_id = request.data.get('project')  
+        project = Project.objects.get(id=project_id)  
+        project_name = project.project_name 
+        
+        print("Project Name:", project_name)
+        print("Project ID:", project_id)
+
+        if not project_name:
+            return Response({'error': 'Project name is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        folder_name = f"{project_name}_{project_id}"
+
+        directory = os.path.join(settings.BASE_DIR, 'Project_folders') 
+
+        folder_path = os.path.join(directory, folder_name)
+        print(f"Checking folder path: {folder_path}")
+
+        if os.path.isdir(folder_path):
+            print(f"Folder {folder_name} found in the directory.")
+
+            payment_applications_folder = os.path.join(folder_path, "4. Payment Applications")
+            print(f"Checking 'Payment Applications' folder at: {payment_applications_folder}")
+            
+            if os.path.isdir(payment_applications_folder):
+                current_date = datetime.now().strftime("%b %d")  
+                date_folder_path = os.path.join(payment_applications_folder, current_date)
+
+                if not os.path.isdir(date_folder_path):
+                    os.makedirs(date_folder_path, exist_ok=True)
+                    print(f"Created new folder with current date: {date_folder_path}")
+                else:
+                    print(f"Folder with current date {current_date} already exists.")
+            else:
+                print("'Payment Applications' folder not found.")
+        else:
+            print(f"Folder {folder_name} not found in your directory.")
     
-        original_workbook_path = "/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/template1.xlsm"  
+            os.makedirs(folder_path, exist_ok=True)  
+
+
+        original_workbook_path =  f"/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/{folder_name}.xlsm"   
         if not os.path.exists(original_workbook_path):
             return Response(
                 {"error": "Original workbook not found."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
         wb = load_workbook(original_workbook_path)
-        sheet_name = "BoQ_Detailed " 
-        if sheet_name not in wb.sheetnames:
-            return Response(
-                {"error": f"Sheet '{sheet_name}' not found in the workbook."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        sheet = wb[sheet_name]
-        start_row = 5  
-        row = start_row + 1  
-        print("----------"*20, serializer.data)
-
-        boq_details = serializer.data.get("Payment_BoQDetailed", [])
-
-        final_total = 0
-
-        for item in boq_details:
-  
-            final_total += float(item['total'])
-
-        print("Final Total:", final_total)
-
-        if not boq_details:
-            return Response(
-                {"error": "No BoQ details found in the response."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        start_row = 4
-        for index, item in enumerate(boq_details):
-            row = start_row + index + 1
-
-            sheet[f"B{row}"] = item.get("item", "")
-            sheet[f"C{row}"] = item.get("category_name", "")
-            sheet[f"D{row}"] = item.get("type_name", "")
-            sheet[f"E{row}"] = item.get("zone_name", "")
-            sheet[f"F{row}"] = item.get("acw", "",)
-            sheet[f"G{row}"] = item.get("pcs", "")
-            sheet[f"H{row}"] = item.get("qty", "")
-            sheet[f"I{row}"] = item.get("unit_name", "")
-            sheet[f"J{row}"] = item.get("rate", "")
-            sheet[f"K{row}"] = item.get("total", "") 
-        sheet[f"K45"] = final_total
-
-        print("second sheet ============================================================")
-
-        sheet_name2 = 'BoQ_Summary' 
-        if sheet_name2 not in wb.sheetnames:
-            return Response(
-                {"error": f"Sheet '{sheet_name2}' not found in the workbook."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        else:
-            print("BOQ Summary sheet is find------------------------" )
-        
-        result = PaymentBoQDetailed.objects.values('category__name', 'zone__name')\
-                                        .annotate(
-                                            QTY=Sum('qty'),
-                                            RATE=Sum('rate'),
-                                            TOTAL=Sum(F('rate') * F('qty')),
-                                            total_amount=Sum('total')
-                                        )
-
-        BOQ_Summary =[]
-
-        for item in result:
-            entry = {
-                'Category_Name': item['category__name'],
-                'Zone_Name' : item['zone__name'],
-                'Total_Quantity': item['QTY'],
-                'Total_Rate': item['RATE'],
-                'Total_Amount': item['total_amount']
-            }
-
-            BOQ_Summary.append(entry)
-
-        print("BOQ_Summary=====>>>>",BOQ_Summary)
- 
-
-        sheet = wb[sheet_name2]  
-        start_row = 5
-        for index, item in enumerate(BOQ_Summary):
-            row = start_row + index + 1
-
-            sheet[f"B{row}"] = item.get("Category_Name", "")
-            sheet[f"C{row}"] = item.get("Zone_Name", "")
-            sheet[f"D{row}"] = item.get("Total_Quantity", "")
-            sheet[f"F{row}"] = item.get("Total_Rate", "")
-            sheet[f"G{row}"] = item.get("Total_Amount", "",)
-        
 
         print("Third sheet ============================================================")
         
         sheet_name3 = 'AFP Summary' 
         if sheet_name3 not in wb.sheetnames:
             return Response(
-                {"error": f"Sheet '{sheet_name2}' not found in the workbook."},
+                {"error": f"Sheet '{sheet_name3}' not found in the workbook."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         else:
             print("AFP Summary sheet is find------------------------" )
         
-        total_amount_by_category = defaultdict(list)
+        print("----------"*20, serializer.data)
 
-        for item in BOQ_Summary:
-            total_amount_by_category[item['Category_Name']].append(item['Total_Amount'])
+        project_id = serializer.data['project']['id']
+        print("project_id-------------",project_id )
+        account_total = PaymentBoQDetailed.objects.filter(project__id=project_id).aggregate(Sum('total'))
+        account_sum = account_total['total__sum']
+        print("Account_total----:", account_sum)
+        print()
+        print()
 
-        final_result_category_total = []
-
-        for category, amounts in total_amount_by_category.items():
-            detailed_amounts = ' + '.join([str(amount) for amount in amounts])
-            total_amount = round(sum(amounts), 2)  
-            final_result_category_total.append({"category_name": category, "total_amount": total_amount})
-
-        print("final_result_category_total=======>>", final_result_category_total)
+        progress = serializer.data['progress']
+        print("Progress--------:", progress)
+        print()
+        print()
+   
+        progress_total = account_sum * progress / 100
+        print("Progress Total-----:", progress_total)
+   
+        print()
+        print()
+        nett_certified_to_date = serializer.data['nett_payment_due']
+        nett_certified_to_date_decimal = Decimal(nett_certified_to_date)
+        print("nett_certified_to_date--------:", nett_certified_to_date_decimal) 
+        print()
+        print() 
+        nett_payment_due = account_sum - nett_certified_to_date_decimal
+        print("nett_payment_due--------", nett_payment_due)
 
         sheet = wb[sheet_name3]  
-        start_row = 14
-        for index, item in enumerate(final_result_category_total):
-            row = start_row + index + 1
+        # start_row = 15
+        # for index, item in enumerate():
+        #     row = start_row + index + 1
 
-            sheet[f"C{row}"] = item.get("category_name", "")
-            sheet[f"E{row}"] = item.get("total_amount", "")
+        #     sheet[f"F{row}"] = item.get("progress", "")
 
-    
+        sheet[f"E24"] = account_sum
+        sheet[f"G24"] = progress_total
+        sheet[f"H27"] = progress_total
+        sheet[f"H29"] = nett_certified_to_date
+        sheet[f"H30"] = nett_payment_due
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        new_workbook_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/payment_{timestamp}.xlsm"  # Replace with your save path
-
+        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        new_workbook_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/Project_folders/{folder_name}/4. Payment Applications/{current_date}/monthly-wise.xlsm" 
         wb.save(new_workbook_path)
         wb.close()
-        file_url = f"/media/payment_{timestamp}.xlsm"
+       
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(
-            {
-                "message": "Payment created successfully and data stored in Excel",
-                "client": serializer.data,
-                "file_url": file_url
-            },
-            status=status.HTTP_201_CREATED,
-        )
-
+    def perform_create(self, serializer):
+        return serializer.save()
+    
 
 class PaymentRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Payment.objects.all()
