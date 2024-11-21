@@ -72,9 +72,9 @@ function LogIn() {
             <button type="submit">Login</button>
           </form>
 
-          <div className="login-btn">
+          {/* <div className="login-btn">
             <Link to="">Forgot Password?</Link>
-          </div>
+          </div> */}
           <div className="signup-btn">
             <Link to="/signup">Registration</Link>
           </div>
