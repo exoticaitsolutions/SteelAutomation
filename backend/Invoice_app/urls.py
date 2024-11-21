@@ -12,6 +12,7 @@ from .views import (
     ContractListCreateAPIView,
     ContractRetrieveUpdateDeleteAPIView,
     ExcelDataView,
+    CategoryListView,
     ForgetPasswordAPIView,
     ItemCategoryViewSet,
     ItemTypeViewSet,
@@ -81,11 +82,14 @@ urlpatterns = [
         name="Payment-detail",
     ),
     path(
+
         "boq-detailed/",  # Renaming for clarity
         PaymentBoQDetailedListCreateAPIView.as_view(),
         name="BoQ-detailed-list-create",
     ),
     path('excel-data/', ExcelDataView.as_view(), name='excel-data'),
+
+    path('categories/', CategoryListView.as_view(), name='category-list'),
 
     path('', include(router.urls)),
     # path(

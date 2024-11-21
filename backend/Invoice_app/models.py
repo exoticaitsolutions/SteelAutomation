@@ -74,21 +74,18 @@ class Schedule(models.Model):
         return f"Schedule {self.schedule_id} for {self.contract}"
 
 
+
+  
 class Payment(models.Model):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE, related_name="entitys")
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="payments"
-    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="payments")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="clients")
-    payment_category = models.CharField(max_length=255)
     payment_sent_date = models.DateField()
     payment_notice_back_date = models.DateField(blank=True, null=True)
-      
-    progress = models.IntegerField( blank=True, null=True) 
-    nett_payment_due = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  
+    nett_payment_due = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"Payment for {self.project.project_name} - {self.payment_category }"
+        return f"Payment for {self.project.project_name} - {self.payment_category}"
 
     def get_payment_sent_date(self):
         return self.payment_sent_date.strftime("%d/%m/%Y")
@@ -143,6 +140,15 @@ class PaymentBoQDetailed(models.Model):
 
     def __str__(self):
         return f"PaymentBoQDetailed ({self.project})"
+    
+
+class CategoryProgress(models.Model):
+    payment = models.ForeignKey(Payment, related_name="category_progress", on_delete=models.CASCADE)
+    category = models.ForeignKey(ItemCategory, related_name="category_progress", on_delete=models.CASCADE)
+    progress = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.category.name} - Progress: {self.progress}%"
     
 
 class EmailReminder(models.Model):

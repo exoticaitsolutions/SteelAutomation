@@ -401,8 +401,10 @@ function AddProject() {
                             </td>
 
                             <td>
+                             
                               <button className="btn_color" type="button" onClick={() => removeFields(index)}><RemoveIcon /></button>
                               <button className="btn_color" type="button" onClick={addFields}><AddIcon /></button>
+                             
                             </td>
                           </tr>
                         ))}

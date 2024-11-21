@@ -16,7 +16,7 @@ function AddItemCategory() {
 
     const apiUrls = {
         baseUrl: `${process.env.REACT_APP_API_BASE_URL}/api/item-categories/`,
-        redirectUrl: '/dashboard/categories',
+        redirectUrl: '/dashboard/item_categories',
     };
 
     const { formValues, isEditing, handleInputChange, handleSubmit } = useFormHandler(
@@ -48,7 +48,7 @@ function AddItemCategory() {
                                         <label>Category name:</label>
                                         <input
                                             type="text"
-                                            name="Category_name"
+                                            name="name"
                                             placeholder="Category name"
                                             value={formValues.name}
                                             onChange={handleInputChange}

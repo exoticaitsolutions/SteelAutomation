@@ -1,3 +1,4 @@
+import decimal
 import json
 import os
 import openpyxl
@@ -22,7 +23,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Payment
-import openpyxl
 from rest_framework import viewsets
 import pandas as pd 
 from rest_framework.views import APIView
@@ -35,7 +35,7 @@ from datetime import datetime
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from decimal import Decimal
 from collections import defaultdict
-
+from openpyxl import load_workbook
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -60,7 +60,6 @@ class LoginView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
-
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -272,13 +271,14 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        # response = super().create(request, *args, **kwargs)
         project_id = serializer.data['id']
         project_name = serializer.data['project_name']
 
         folder_name = f"{project_name}_{project_id}"
 
-        base_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/Project_folders" 
+ 
+
+        base_path= os.path.join(BASE_DIR, 'Project_folders')
 
         folder_structure = {
             folder_name: { 
@@ -325,7 +325,8 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
 
         create_folders(base_path, folder_structure)
 
-        original_workbook_path = "/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/template1.xlsm"  
+        original_workbook_path = os.path.join(BASE_DIR, 'xlsm_file_template/template1.xlsm')
+   
         if not os.path.exists(original_workbook_path):
             return Response(
                 {"error": "Original workbook not found."},
@@ -333,27 +334,26 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
             )
 
         wb = load_workbook(original_workbook_path)
+      
         sheet_name = "BoQ_Detailed " 
         if sheet_name not in wb.sheetnames:
             return Response(
                 {"error": f"Sheet '{sheet_name}' not found in the workbook."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
+       
         sheet = wb[sheet_name]
         start_row = 5  
         row = start_row + 1  
-        print("----------"*20, serializer.data)
+        # print("----------"*20, serializer.data)
 
         boq_details = serializer.data.get("Payment_BoQDetailed", [])
 
         final_total = 0
-
         for item in boq_details:
-  
             final_total += float(item['total'])
 
-        print("Final Total:", final_total)
+        # print("Final Total:", final_total)
 
         if not boq_details:
             return Response(
@@ -377,7 +377,7 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
             sheet[f"K{row}"] = item.get("total", "") 
         sheet[f"K45"] = final_total
 
-        print("second sheet ============================================================")
+        # print("second sheet ============================================================")
 
         sheet_name2 = 'BoQ_Summary' 
         if sheet_name2 not in wb.sheetnames:
@@ -409,9 +409,8 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
 
             BOQ_Summary.append(entry)
 
-        print("BOQ_Summary=====>>>>",BOQ_Summary)
+        # print("BOQ_Summary=====>>>>",BOQ_Summary)
  
-
         sheet = wb[sheet_name2]  
         start_row = 5
         for index, item in enumerate(BOQ_Summary):
@@ -424,7 +423,7 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
             sheet[f"G{row}"] = item.get("Total_Amount", "",)
         
 
-        print("Third sheet ============================================================")
+        # print("Third sheet ============================================================")
         
         sheet_name3 = 'AFP Summary' 
         if sheet_name3 not in wb.sheetnames:
@@ -447,19 +446,17 @@ class ProjectListCreateAPIView(generics.ListCreateAPIView):
             total_amount = round(sum(amounts), 2)  
             final_result_category_total.append({"category_name": category, "total_amount": total_amount})
 
-        print("final_result_category_total=======>>", final_result_category_total)
+        # print("final_result_category_total=======>>", final_result_category_total)
 
         sheet = wb[sheet_name3]  
         start_row = 14
         for index, item in enumerate(final_result_category_total):
             row = start_row + index + 1
 
-            sheet[f"C{row}"] = item.get("category_name", "")
             sheet[f"E{row}"] = item.get("total_amount", "")
-
-
-        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        new_workbook_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/{folder_name}.xlsm" 
+        
+        new_workbook_path = os.path.join(BASE_DIR, f'xlsm_file_template/{folder_name}.xlsm')
+       
         wb.save(new_workbook_path)
         wb.close()
         file_url = f"/media/payment_{folder_name}.xlsm"
@@ -682,12 +679,13 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)  
 
+
         project_id = request.data.get('project')  
         project = Project.objects.get(id=project_id)  
         project_name = project.project_name 
         
-        print("Project Name:", project_name)
-        print("Project ID:", project_id)
+        # print("Project Name:", project_name)
+        # print("Project ID:", project_id)
 
         if not project_name:
             return Response({'error': 'Project name is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -697,11 +695,10 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
         directory = os.path.join(settings.BASE_DIR, 'Project_folders') 
 
         folder_path = os.path.join(directory, folder_name)
-        print(f"Checking folder path: {folder_path}")
+        # print(f"Checking folder path: {folder_path}")
 
         if os.path.isdir(folder_path):
             print(f"Folder {folder_name} found in the directory.")
-
             payment_applications_folder = os.path.join(folder_path, "4. Payment Applications")
             print(f"Checking 'Payment Applications' folder at: {payment_applications_folder}")
             
@@ -722,7 +719,8 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
             os.makedirs(folder_path, exist_ok=True)  
 
 
-        original_workbook_path =  f"/home/dell/Videos/vivek work/SteelAutomation/backend/xlsm_file_template/{folder_name}.xlsm"   
+        original_workbook_path = os.path.join(BASE_DIR, f'xlsm_file_template/{folder_name}.xlsm')
+      
         if not os.path.exists(original_workbook_path):
             return Response(
                 {"error": "Original workbook not found."},
@@ -732,7 +730,7 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
 
         wb = load_workbook(original_workbook_path)
 
-        print("Third sheet ============================================================")
+        # print("Third sheet ============================================================")
         
         sheet_name3 = 'AFP Summary' 
         if sheet_name3 not in wb.sheetnames:
@@ -743,49 +741,117 @@ class PaymentListCreateAPIView(generics.ListCreateAPIView):
         else:
             print("AFP Summary sheet is find------------------------" )
         
-        print("----------"*20, serializer.data)
+        # print("----------"*20, serializer.data)
+
+        category_progress = serializer.data.get('category_progress', [])
+        category_wise = []
+        for progress in category_progress:
+            category = ItemCategory.objects.get(id=progress['category_id'])
+            category_name = category.name
+            print(f"Category Name: {category_name}, Progress: {progress['progress']}%")
+            category_wise.append({
+           'category_wise_name':category_name,
+            'category_wise_sum': 0
+        })
 
         project_id = serializer.data['project']['id']
-        print("project_id-------------",project_id )
+        # print("project_id-------------",project_id )
+
+        category_totals = PaymentBoQDetailed.objects.filter(project_id=project_id).values('category').annotate(total_sum=Sum('total')).order_by('category') 
+
+        for category in category_totals:
+            category_name = ItemCategory.objects.get(id=category['category']).name  # Fetch category name
+            total_sum = category.get('total_sum', 0)
+            print(f"Category: {category_name}, Sum: {total_sum}")
+
+            for item in category_wise:
+                if item['category_wise_name'] == category_name:
+                    item['category_wise_sum'] = total_sum
+                    break
+            else:
+              
+                category_wise.append({
+                    'category_wise_name': category_name,
+                    'category_wise_sum': total_sum
+                })
+        
+
+        total_interim_payment = 0
+
+        interim_payments = []
+        for category in category_totals:
+            category_sum = category['total_sum']
+
+            progress = next((item for item in category_progress if item['category_id'] == category['category']), None)
+            
+            category_progress_value = progress['progress'] if progress else 0
+
+            if isinstance(category_progress, list):
+                progress = next((item for item in category_progress if item['category_id'] == category['category']), None)
+            else:
+                progress = None  
+            
+            if progress:
+                category_progress_value = progress['progress']  
+            else:
+                category_progress_value = 0  
+
+            if isinstance(category_progress_value, (int, float, decimal.Decimal)):
+                interim_payment = category_sum * category_progress_value / 100  
+            else:
+                interim_payment = 0 
+            
+            total_interim_payment += interim_payment
+
+            interim_payments.append({
+                'category_name': category['category'], 
+                'sum': category_sum,
+                'progress': category_progress_value,
+                'interim_payment': interim_payment
+            })
+
+        print(f"Total interim payment = {total_interim_payment}")
+
+        for payment in interim_payments:
+            print(">>>>", payment)
+            print(f"Category: {payment['category_name']}, "
+                f"Sum: {payment['sum']}, Progress: {payment['progress']}%, "
+                f"Interim Payment: {payment['interim_payment']}") 
+
         account_total = PaymentBoQDetailed.objects.filter(project__id=project_id).aggregate(Sum('total'))
         account_sum = account_total['total__sum']
-        print("Account_total----:", account_sum)
-        print()
-        print()
+        # print("Account_total----:", account_sum)
 
-        progress = serializer.data['progress']
-        print("Progress--------:", progress)
-        print()
-        print()
-   
-        progress_total = account_sum * progress / 100
-        print("Progress Total-----:", progress_total)
-   
-        print()
-        print()
         nett_certified_to_date = serializer.data['nett_payment_due']
         nett_certified_to_date_decimal = Decimal(nett_certified_to_date)
-        print("nett_certified_to_date--------:", nett_certified_to_date_decimal) 
-        print()
-        print() 
+        # print("nett_certified_to_date--------:", nett_certified_to_date_decimal) 
+ 
         nett_payment_due = account_sum - nett_certified_to_date_decimal
-        print("nett_payment_due--------", nett_payment_due)
+        # print("nett_payment_due--------", nett_payment_due)
 
         sheet = wb[sheet_name3]  
-        # start_row = 15
-        # for index, item in enumerate():
-        #     row = start_row + index + 1
+        start_row = 14
+        for index, (category_item, interim_item) in enumerate(zip(category_wise, interim_payments)):
+            row = start_row + index + 1
+        
+            sheet[f"C{row}"] = category_item.get("category_wise_name", "")
+            sheet[f"E{row}"] = category_item.get("category_wise_sum", "")
+            
+            sheet[f"F{row}"] = interim_item.get("progress", "")
+            sheet[f"G{row}"] = interim_item.get("interim_payment", "")
 
-        #     sheet[f"F{row}"] = item.get("progress", "")
 
         sheet[f"E24"] = account_sum
-        sheet[f"G24"] = progress_total
-        sheet[f"H27"] = progress_total
         sheet[f"H29"] = nett_certified_to_date
+        sheet[f"H27"] = total_interim_payment
+        sheet[f"G24"] = total_interim_payment
         sheet[f"H30"] = nett_payment_due
+        progress_totals = total_interim_payment / account_sum * 100
 
-        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        new_workbook_path = f"/home/dell/Videos/vivek work/SteelAutomation/backend/Project_folders/{folder_name}/4. Payment Applications/{current_date}/monthly-wise.xlsm" 
+        sheet[f"H26"] = progress_totals       
+
+        new_workbook_path = os.path.join(BASE_DIR, f'Project_folders/{folder_name}/4. Payment Applications/{current_date}/monthly-wise.xlsm')
+      
         wb.save(new_workbook_path)
         wb.close()
        
@@ -949,3 +1015,27 @@ class ExcelDataView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CategoryListView(APIView):
+    def post(self, request):
+        project_id = request.data.get('project_id')
+
+        if not project_id:
+            return Response({"error": "Project ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Retrieve the project based on project_id
+            project = Project.objects.get(id=project_id)
+            print("--" * 88, project)
+
+            # Fetch unique category names and IDs from the related PaymentBoQDetailed entries
+            categories = {
+                item.category.id: item.category.name for item in project.boq_detailed.all()
+            }
+
+            # Prepare the response with unique categories
+            payment_category = [{"category_name": name, "category_id": category_id} for category_id, name in categories.items()]
+
+            return Response({"payment_category": payment_category}, status=status.HTTP_200_OK)
+
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)

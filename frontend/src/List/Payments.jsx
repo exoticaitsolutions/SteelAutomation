@@ -61,21 +61,21 @@ function Payments() {
         });
     };
         
-    const handlePdf = async (id) => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/generate_invoice_pdf/${id}/`, {
-                headers: {
-                    Authorization: `Token ${token}`
-                }
-            });
+    // const handlePdf = async (id) => {
+    //     try {
+    //         const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/generate_invoice_pdf/${id}/`, {
+    //             headers: {
+    //                 Authorization: `Token ${token}`
+    //             }
+    //         });
     
-            const pdfUrl = response.data.pdf_url;
-            window.open(pdfUrl, '_blank');
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            Swal.fire('Error!', 'There was a problem generating the PDF.', 'error');
-        }
-    };
+    //         const pdfUrl = response.data.pdf_url;
+    //         window.open(pdfUrl, '_blank');
+    //     } catch (error) {
+    //         console.error('Error generating PDF:', error);
+    //         Swal.fire('Error!', 'There was a problem generating the PDF.', 'error');
+    //     }
+    // };
     
 
     const handleEdit = (payment) => {
@@ -99,12 +99,12 @@ function Payments() {
                                 <th>Entity</th>
                                 <th>Project</th>
                                 <th>Client</th>
-                                <th>Category</th>
+                                {/* <th>Category</th> */}
                                 <th>Sent date</th>
                                 <th>Back date</th>
                                 {userRole === "ADMIN" &&
                                  <th>Action</th> }
-                                 <th>Slip</th>
+                   
                             </tr>
                         </thead>
                         <tbody>
@@ -114,7 +114,7 @@ function Payments() {
                                            <td>{payment.entity.entity_name}</td> 
                                         <td>{payment.project.project_name}</td> 
                                         <td>{payment.client.client_name}</td>
-                                        <td>{payment.payment_category}</td>
+                                        {/* <td>{payment.payment_category}</td> */}
                                         <td>{payment.payment_sent_date}</td>
                                         <td>{payment.payment_notice_back_date}</td>
                                         {userRole === 'ADMIN' && (
@@ -125,11 +125,7 @@ function Payments() {
                                                 </div>
                                             </td>
                                         )}
-                                        <td>
-                                        
-                                             <button onClick={() => handlePdf(payment.id)}><i className="fas fa-paperclip" /></button>
-                                            
-                                             </td>
+
                                     </tr>
                                 ))
                             ) : (

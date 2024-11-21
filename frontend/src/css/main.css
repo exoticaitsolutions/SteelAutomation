@@ -684,7 +684,9 @@ tbody tr:nth-child(even) {
 
   padding: 30px 0;
 }
-
+.minus_plus{
+  text-align: center;
+}
 
 /* List css */
 .add_btn button{
@@ -761,7 +763,6 @@ tbody tr:nth-child(even) {
 }
 
 
-
 /* pacment-processing extra fields */
 
 .table-container input[type="text"] {
@@ -772,6 +773,7 @@ tbody tr:nth-child(even) {
 
 .table-container table tbody tr td {
   max-width: 78px;
+  text-align: center;
 }
 
 

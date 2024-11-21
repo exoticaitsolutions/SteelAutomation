@@ -118,7 +118,7 @@ function Projects() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5">No clients found</td>
+                                    <td colSpan="5">No Projects found</td>
                                 </tr>
                             )}
                         </tbody>

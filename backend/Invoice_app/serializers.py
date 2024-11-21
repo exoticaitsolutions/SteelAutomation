@@ -1,5 +1,6 @@
 from datetime import date
 import os
+import openpyxl
 from django.forms import model_to_dict
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
@@ -8,7 +9,7 @@ from Invoice_app.models import User, Entity, Client
 from django.contrib.auth.backends import ModelBackend
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-
+from openpyxl import load_workbook
 from steelautomation import settings
 from .models import *
 
@@ -164,7 +165,6 @@ class ItemUnitSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class PaymentBoQDetailedSerializer(serializers.ModelSerializer):
-    # Adding custom fields for the names of related models
     unit_name = serializers.CharField(source='unit.name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     type_name = serializers.CharField(source='type.name', read_only=True)
@@ -198,7 +198,6 @@ class ProjectSerializer(serializers.ModelSerializer):
       
         project = Project.objects.create(**validated_data)
 
-        print("----------------"*13, project)
         for boq_data in payment_boq_detailed_data:
             boq_data.pop('Project', None)
 
@@ -219,10 +218,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             fields=[field.name for field in instance.client._meta.fields],
         )
 
-        # Access the related objects using the correct related_name
-        # representation['Payment_BoQDetailed'] = PaymentBoQDetailedSerializer(
-        #     instance.boq_detailed.all(), many=True
-        # ).data
 
         return representation
 
@@ -263,7 +258,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
         return representation
 
-
+class CategorySerializer(serializers.Serializer):
+    category_name = serializers.CharField()
 
 class ItemCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -286,9 +282,17 @@ class ItemUnitSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+class CategoryProgressSerializer(serializers.ModelSerializer):
+    category_id = serializers.IntegerField()
+    progress = serializers.IntegerField()
+
+    class Meta:
+        model = CategoryProgress
+        fields = ['category_id', 'progress']
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    category_progress = CategoryProgressSerializer(many=True)
 
     class Meta:
         model = Payment
@@ -297,26 +301,42 @@ class PaymentSerializer(serializers.ModelSerializer):
             'entity',
             'project',
             'client',
-            'payment_category',
             'payment_sent_date',
             'payment_notice_back_date',
-            'progress',  
             'nett_payment_due',
-   
+            'category_progress'
         ]
 
     def create(self, validated_data):
-        # Extract nested PaymentBoQDetailed data
+     
+        category_progress_data = validated_data.pop('category_progress')
 
-        # Create the Payment instance
         payment = Payment.objects.create(**validated_data)
+        
+
+        for category_data in category_progress_data:
+            try:
+                category_id = category_data['category_id']
+                progress = category_data['progress']
+
+                category = ItemCategory.objects.get(id=category_id)
+             
+                CategoryProgress.objects.create(payment=payment, category=category, progress=progress)
+
+            except KeyError as e:
+                print(f"Error in category_progress data: {e}")
+                raise serializers.ValidationError(f"Invalid data for category progress: {e}")
+
+            except ItemCategory.DoesNotExist:
+                raise serializers.ValidationError(f"Category with ID {category_id} does not exist.")
+
         return payment
 
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
 
-        # Populate related fields
+
         representation['entity'] = {
             'id': instance.entity.id,
             'entity_name': instance.entity.entity_name
@@ -338,7 +358,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             'address': instance.client.address,
         }
 
-        # Access the related objects using the correct related_name
 
         return representation
     
@@ -348,13 +367,9 @@ class FileUploadSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         uploaded_file = validated_data['file']
-        print("-----------------"*8)
+
         print("uploaded_file v: ", uploaded_file)
-        print("-----------------"*8)
-        
-        # Perform any processing or saving with `uploaded_file` if needed
-        
-        # Return metadata instead of the file itself
+
         return {'file_name': uploaded_file.name, 'file_size': uploaded_file.size}
 
 
